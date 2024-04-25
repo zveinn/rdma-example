@@ -438,21 +438,21 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
    * RDMA_CM_EVNET_CONNECT_REQUEST We wait (block) on the connection management
    * event channel for the connect event.
    */
-  printf("about to process");
-  printf("about to process");
+  print("about to process");
+  print("about to process");
 
   while (1) {
     pthread_t thread;
-    printf("about to process2");
+    print("about to process2");
     ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
                                 &cm_event);
-    printf("done!");
+    print("done!");
     if (ret) {
       rdma_error("Failed to get cm event, ret = %d \n", ret);
       return ret;
     }
 
-    printf("loop start");
+    print("loop start");
     int i;
     for (i = 0; i < 1000; i++) {
       if (clients[i]->index == 0) {
@@ -482,7 +482,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
      * must be made before acknowledgment. Like, we have already saved the
      * client id from "id" field before acknowledging the event.
      */
-    printf("about to ack");
+    print("about to ack");
     ret = rdma_ack_cm_event(cm_event);
     if (ret) {
       rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
