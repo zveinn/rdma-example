@@ -312,7 +312,7 @@ static int send_server_metadata_to_client() {
 /* This is server side logic. Server passively waits for the client to call
  * rdma_disconnect() and then it will clean up its resources */
 static int disconnect_and_cleanup() {
-  sleep(5);
+  // sleep(5);
   printf("DST: %s\n", dst);
   printf("DST: %s\n", dst);
   printf("DST: %s\n", dst);
