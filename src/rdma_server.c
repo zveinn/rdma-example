@@ -150,9 +150,8 @@ static int accept_client_connection(client *c) {
     return -errno;
   }
 
-  memcpy(&remote_sockaddr /* where to save */,
-         rdma_get_peer_addr(c->cm_event_id) /* gives you remote sockaddr */,
-         sizeof(struct sockaddr_in) /* max size */);
+  memcpy(&remote_sockaddr, rdma_get_peer_addr(c->cm_event_id),
+         sizeof(struct sockaddr_in));
   printf("A new connection is accepted from %s \n",
          inet_ntoa(remote_sockaddr.sin_addr));
 
@@ -337,12 +336,12 @@ void *handle_client(void *arg) {
     rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return NULL;
   }
-  // ret = send_server_metadata_to_client();
-  // if (ret) {
-  //   rdma_error("Failed to send server metadata to the client, ret = %d \n",
-  //              ret);
-  //   return NULL;
-  // }
+  ret = send_server_metadata_to_client();
+  if (ret) {
+    rdma_error("Failed to send server metadata to the client, ret = %d \n",
+               ret);
+    return NULL;
+  }
   // ret = disconnect_and_cleanup();
   // if (ret) {
   //   rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
