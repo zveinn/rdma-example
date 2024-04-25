@@ -459,8 +459,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         clients[i]->index = i;
         clients[i]->cm_event = cm_event;
         debug("new client! %p\n", clients[i]);
-        debug("new event! %p\n", &cm_event);
-        debug("new id! %p\n", &cm_event->id);
+        debug("new event! %p\n", cm_event);
+        debug("new id! %p\n", cm_event->id);
 
         if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
           perror("pthread_create\n");
