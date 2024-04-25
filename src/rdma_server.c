@@ -436,9 +436,9 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
    * RDMA_CM_EVNET_CONNECT_REQUEST We wait (block) on the connection management
    * event channel for the connect event.
    */
-  pthread_t thread;
 
   while (1) {
+    pthread_t thread;
     struct rdma_cm_event *cm_event = NULL;
     ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
                                 &cm_event);
@@ -453,6 +453,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         clients[i] = malloc(sizeof(client));
         clients[i]->index = i;
         clients[i]->cm_event = cm_event;
+        printf("new client! %p", clients[i]);
 
         if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
           perror("pthread_create");
@@ -475,6 +476,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
      * must be made before acknowledgment. Like, we have already saved the
      * client id from "id" field before acknowledging the event.
      */
+    printf("about to ack");
     ret = rdma_ack_cm_event(cm_event);
     if (ret) {
       rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
