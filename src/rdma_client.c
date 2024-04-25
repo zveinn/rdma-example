@@ -130,7 +130,7 @@ static int client_prepare_connection(struct sockaddr_in *s_addr)
 	 * completion metadata is placed. The metadata is packed into a structure 
 	 * called struct ibv_wc (wc = work completion). ibv_wc has detailed 
 	 * information about the work completion. An I/O request in RDMA world 
-	 * is called "work" ;) 
+	 * is called "work" 
 	 */
 	client_cq = ibv_create_cq(cm_client_id->verbs /* which device*/, 
 			CQ_CAPACITY /* maximum capacity*/, 
