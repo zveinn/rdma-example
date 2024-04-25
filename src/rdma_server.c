@@ -33,20 +33,20 @@ typedef struct {
 client *clients[1000];
 
 // ???????
-static struct rdma_cm_id *ClientSocket = NULL;
-static struct ibv_pd *PD = NULL;
-static struct ibv_comp_channel *io_completion_channel = NULL;
-static struct ibv_cq *cq = NULL;
-static struct ibv_qp_init_attr qp_init_attr;
-static struct ibv_qp *client_qp = NULL;
+// static struct rdma_cm_id *ClientSocket = NULL;
+// static struct ibv_pd *PD = NULL;
+// static struct ibv_comp_channel *io_completion_channel = NULL;
+// static struct ibv_cq *cq = NULL;
+// static struct ibv_qp_init_attr qp_init_attr;
+// static struct ibv_qp *client_qp = NULL;
 
 /* RDMA memory resources */
-static struct ibv_mr *client_metadata_mr = NULL, *server_buffer_mr = NULL,
-                     *server_metadata_mr = NULL;
-static struct rdma_buffer_attr client_metadata_attr, server_metadata_attr;
-static struct ibv_recv_wr client_recv_wr, *bad_client_recv_wr = NULL;
-static struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
-static struct ibv_sge client_recv_sge, server_send_sge;
+// static struct ibv_mr *client_metadata_mr = NULL, *server_buffer_mr = NULL,
+//                      *server_metadata_mr = NULL;
+// static struct rdma_buffer_attr client_metadata_attr, server_metadata_attr;
+// static struct ibv_recv_wr client_recv_wr, *bad_client_recv_wr = NULL;
+// static struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
+// static struct ibv_sge client_recv_sge, server_send_sge;
 
 static int setup_client_resources(client *c) {
   int ret = -1;
@@ -81,10 +81,10 @@ static int setup_client_resources(client *c) {
 
   bzero(&c->QP, sizeof c->QP);
   c->QP.cap.max_recv_sge = MAX_SGE;
-  c->QP.cap.max_recv_wr = MAX_WR;   /* Maximum receive posting capacity */
-  c->QP.cap.max_send_sge = MAX_SGE; /* Maximum SGE per send posting */
-  c->QP.cap.max_send_wr = MAX_WR;   /* Maximum send posting capacity */
-  c->QP.qp_type = IBV_QPT_RC;       /* QP type, RC = Reliable connection */
+  c->QP.cap.max_recv_wr = MAX_WR;
+  c->QP.cap.max_send_sge = MAX_SGE;
+  c->QP.cap.max_send_wr = MAX_WR;
+  c->QP.qp_type = IBV_QPT_RC;
   c->QP.recv_cq = c->CQ;
   c->QP.send_cq = c->CQ;
   ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
@@ -92,15 +92,13 @@ static int setup_client_resources(client *c) {
     rdma_error("++QP(error) errno: %d\n", -errno);
     return -errno;
   }
-  /* Save the reference for handy typing but is not required */
+
   debug("++QP %p\n", c->cm_event_id->qp);
   return ret;
 }
 
-/* Pre-posts a receive buffer and accepts an RDMA client connection */
 static int accept_client_connection(client *c) {
   struct rdma_conn_param conn_param;
-  struct rdma_cm_event *cm_event = NULL;
   struct sockaddr_in remote_sockaddr;
   int ret = -1;
 
@@ -121,47 +119,57 @@ static int accept_client_connection(client *c) {
 
   ret = ibv_post_recv(c->cm_event_id->qp, &c->RCV_WR, &c->BAD_RCV_WR);
   if (ret) {
-    rdma_error("Failed to pre-post the receive buffer, errno: %d \n", ret);
+    rdma_error("++IBV_POST_REC(ERR), errno: %d \n", ret);
     return ret;
   }
-  debug("Receive buffer pre-posting is successful \n");
-  /* Now we accept the connection. Recall we have not accepted the connection
-   * yet because we have to do lots of resource pre-allocation */
+  debug("++IBV_POST_REC \n");
+
   memset(&conn_param, 0, sizeof(conn_param));
-  /* this tell how many outstanding requests can we handle */
-  conn_param.initiator_depth =
-      3; /* For this exercise, we put a small number here */
-  /* This tell how many outstanding requests we expect other side to handle */
-  conn_param.responder_resources =
-      3; /* For this exercise, we put a small number */
+
+  conn_param.initiator_depth = 3;
+  conn_param.responder_resources = 3;
   ret = rdma_accept(c->cm_event_id, &conn_param);
   if (ret) {
-    rdma_error("Failed to accept the connection, errno: %d \n", -errno);
+    rdma_error("++ACCEPT(error), errno: %d \n", -errno);
     return -errno;
   }
-  /* We expect an RDMA_CM_EVNET_ESTABLISHED to indicate that the RDMA
-   * connection has been established and everything is fine on both, server
-   * as well as the client sides.
-   */
-  debug("Going to wait for : RDMA_CM_EVENT_ESTABLISHED event \n");
+
+  debug("++ESTABLISHED(waiting...) \n");
+  struct rdma_cm_event *cm_event = NULL;
   ret =
       process_rdma_cm_event(EventChannel, RDMA_CM_EVENT_ESTABLISHED, &cm_event);
   if (ret) {
-    rdma_error("Failed to get the cm event, errnp: %d \n", -errno);
+    rdma_error("++ESTABLISHED(error), errnp: %d \n", -errno);
     return -errno;
   }
-  /* We acknowledge the event */
+  debug("++ESTABLISHED(received!) \n");
+
   ret = rdma_ack_cm_event(cm_event);
   if (ret) {
-    rdma_error("Failed to acknowledge the cm event %d\n", -errno);
+    rdma_error("++ESTABLISHED(failed to ack) %d\n", -errno);
     return -errno;
   }
-  /* Just FYI: How to extract connection information */
+
   memcpy(&remote_sockaddr /* where to save */,
          rdma_get_peer_addr(c->cm_event_id) /* gives you remote sockaddr */,
          sizeof(struct sockaddr_in) /* max size */);
   printf("A new connection is accepted from %s \n",
          inet_ntoa(remote_sockaddr.sin_addr));
+
+  printf("CLIENT: %p", c);
+  printf("CompCHan %p", c->completionChannel);
+  printf("PD %p", c->PD);
+  printf("CQ %p", c->CQ);
+  printf("QP %p", &c->QP);
+  printf("MR %p", c->MR);
+  printf("SGE %p", &c->SGE);
+  printf("RCV_WR %p", &c->RCV_WR);
+  printf("BAD-- %p", c->BAD_RCV_WR);
+  printf("B1 %p", &c->B1);
+  printf("B2 %p", &c->B2);
+  printf("B3 %p", &c->B3);
+  printf("B4 %p", &c->B4);
+
   return ret;
 }
 
