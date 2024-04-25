@@ -31,7 +31,7 @@ static struct ibv_sge client_recv_sge, server_send_sge;
 
 typedef struct {
   struct rdma_cm_event *cm_event;
-  // struct rdma_cm_id *cm_event_id;
+  struct rdma_cm_id *cm_event_id;
   int index;
 } client;
 
@@ -362,7 +362,7 @@ void *handle_client(void *arg) {
   printf("inside thread");
   int ret;
   client *c = (client *)arg;
-  client_socket = c->cm_event->id;
+  client_socket = c->cm_event_id;
   printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
          c->cm_event->id);
 
@@ -456,7 +456,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         ret = process_rdma_cm_event(cm_event_channel,
                                     RDMA_CM_EVENT_CONNECT_REQUEST,
                                     &clients[i]->cm_event);
-        debug("about to process 3 %d\n", 1);
+
+        clients[i]->cm_event_id = clients[i]->cm_event->id;
         if (ret) {
           rdma_error("Failed to get cm event, ret = %d \n", ret);
           return ret;
