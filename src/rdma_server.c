@@ -457,6 +457,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       if (clients[i] == 0) {
         clients[i] = malloc(sizeof(client));
         clients[i]->index = i;
+        clients[i]->cm_event = malloc(sizeof(struct rdma_cm_event));
         clients[i]->cm_event = cm_event;
         debug("new client! %p\n", clients[i]);
         debug("new event! %p\n", cm_event);
