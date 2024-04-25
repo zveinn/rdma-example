@@ -172,6 +172,16 @@ static int accept_client_connection(client *c) {
   return ret;
 }
 
+char *convert_to_string(uint32_t *data, size_t length) {
+  size_t string_size = length + 1; // Add 1 for null terminator
+  char *str = malloc(string_size * sizeof(char));
+  if (str == NULL) {
+    // Handle allocation failure (e.g., print error message)
+    return NULL;
+  }
+  return str;
+}
+
 static int postConnectReceive(client *c) {
   struct ibv_wc wc;
   int ret = -1;
@@ -184,6 +194,8 @@ static int postConnectReceive(client *c) {
 
   printf("RECEIVED WORK! %d\n", 1);
   show_rdma_buffer_attr(&c->B1);
+  char *string = convert_to_string(&c->B1.stag.local_stag, c->B1.length);
+  printf("BUFRR: %s", string);
 
   ret = process_work_completion_events(c->completionChannel, &wc, 1);
   if (ret != 1) {
