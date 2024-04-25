@@ -198,6 +198,7 @@ static int postConnectReceive(client *c) {
   printf("RECEIVED WORK! %d\n", 1);
   show_rdma_buffer_attr(&c->B1);
   char *string = convert_to_string(&c->B1.stag.local_stag, c->B1.length);
+  char *string2 = convert_to_string(&c->B1.stag.remote_stag, c->B1.length);
   printf("BUFRR: %s\n", string);
 
   ret = process_work_completion_events(c->completionChannel, &wc, 1);
