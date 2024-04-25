@@ -27,14 +27,16 @@
 // #include "../infiniband/verbs.h"
 // #include "../rdma/rdma_cma.h"
 
-#define LOCAL_HEADER (0)
+// #define LOCAL_HEADER (0)
+#define SERVER_HEADER (1)
 #ifdef LOCAL_HEADER
 #include "../infiniband/verbs.h"
 #include "../rdma/rdma_cma.h"
 #endif
+
 #ifdef SERVER_HEADER
-// #include <infiniband/verbs.h>
-// #include <rdma/rdma_cma.h>
+#include <infiniband/verbs.h>
+#include <rdma/rdma_cma.h>
 #endif
 
 /* Error Macro*/
