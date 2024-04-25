@@ -357,11 +357,11 @@ static int disconnect_and_cleanup() {
   return 0;
 }
 
-// void *handle_client(void *arg) {
-void *handle_client(client *c) {
+void *handle_client(void *arg) {
+  // void *handle_client(client *c) {
   printf("inside thread");
   int ret;
-  // client *c = (client *)arg;
+  client *c = (client *)arg;
   client_socket = c->cm_event->id;
   printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
          c->cm_event->id);
@@ -467,16 +467,16 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         // debug("new event! %p\n", clients[i]->cm_event);
         // debug("new id! %p\n", clients[i]->cm_event->id);
 
-        // if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
-        //   perror("pthread_create\n");
-        //   exit(EXIT_FAILURE);
-        // }
-        //
-        handle_client(clients[i]);
+        // handle_client(clients[i]);
         ret = rdma_ack_cm_event(clients[i]->cm_event);
         if (ret) {
           rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
           return -errno;
+        }
+
+        if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
+          perror("pthread_create\n");
+          exit(EXIT_FAILURE);
         }
         break;
       }
