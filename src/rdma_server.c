@@ -481,7 +481,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
      * must be made before acknowledgment. Like, we have already saved the
      * client id from "id" field before acknowledging the event.
      */
-    print("about to ack");
+    printf("about to process 6 %d", 1);
     ret = rdma_ack_cm_event(cm_event);
     if (ret) {
       rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
