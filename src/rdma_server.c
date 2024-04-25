@@ -363,12 +363,8 @@ void *handle_client(client *c) {
   int ret;
   // client *c = (client *)arg;
   client_socket = c->cm_event->id;
-
-  while (1) {
-    printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
-           c->cm_event->id);
-    sleep(2);
-  }
+  printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
+         c->cm_event->id);
 
   ret = setup_client_resources();
   if (ret) {
