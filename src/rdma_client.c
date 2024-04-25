@@ -343,19 +343,21 @@ static int client_remote_memory_ops() {
   client_send_wr.wr.rdma.rkey = server_metadata_attr.stag.remote_stag;
   client_send_wr.wr.rdma.remote_addr = server_metadata_attr.address;
   /* Now we post it */
-  ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
-  if (ret) {
-    rdma_error("Failed to read client dst buffer from the master, errno: %d \n",
-               -errno);
-    return -errno;
-  }
+  // ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
+  // if (ret) {
+  //   rdma_error("Failed to read client dst buffer from the master, errno: %d
+  //   \n",
+  //              -errno);
+  //   return -errno;
+  // }
+
   /* at this point we are expecting 1 work completion for the write */
-  ret = process_work_completion_events(io_completion_channel, &wc, 1);
-  if (ret != 1) {
-    rdma_error("We failed to get 1 work completions , ret = %d \n", ret);
-    return ret;
-  }
-  debug("Client side READ is complete \n");
+  // ret = process_work_completion_events(io_completion_channel, &wc, 1);
+  // if (ret != 1) {
+  //   rdma_error("We failed to get 1 work completions , ret = %d \n", ret);
+  //   return ret;
+  // }
+  // debug("Client side READ is complete \n");
   return 0;
 }
 
