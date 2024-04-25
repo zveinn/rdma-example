@@ -33,20 +33,20 @@ typedef struct {
 client *clients[1000];
 
 // ???????
-// static struct rdma_cm_id *ClientSocket = NULL;
-// static struct ibv_pd *PD = NULL;
-// static struct ibv_comp_channel *io_completion_channel = NULL;
-// static struct ibv_cq *cq = NULL;
-// static struct ibv_qp_init_attr qp_init_attr;
-// static struct ibv_qp *client_qp = NULL;
+static struct rdma_cm_id *ClientSocket = NULL;
+static struct ibv_pd *PD = NULL;
+static struct ibv_comp_channel *io_completion_channel = NULL;
+static struct ibv_cq *cq = NULL;
+static struct ibv_qp_init_attr qp_init_attr;
+static struct ibv_qp *client_qp = NULL;
 
 /* RDMA memory resources */
-// static struct ibv_mr *client_metadata_mr = NULL, *server_buffer_mr = NULL,
-//                      *server_metadata_mr = NULL;
-// static struct rdma_buffer_attr client_metadata_attr, server_metadata_attr;
-// static struct ibv_recv_wr client_recv_wr, *bad_client_recv_wr = NULL;
-// static struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
-// static struct ibv_sge client_recv_sge, server_send_sge;
+static struct ibv_mr *client_metadata_mr = NULL, *server_buffer_mr = NULL,
+                     *server_metadata_mr = NULL;
+static struct rdma_buffer_attr client_metadata_attr, server_metadata_attr;
+static struct ibv_recv_wr client_recv_wr, *bad_client_recv_wr = NULL;
+static struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
+static struct ibv_sge client_recv_sge, server_send_sge;
 
 static int setup_client_resources(client *c) {
   int ret = -1;
