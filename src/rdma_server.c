@@ -179,6 +179,12 @@ char *convert_to_string(uint32_t *data, size_t length) {
     // Handle allocation failure (e.g., print error message)
     return NULL;
   }
+  // Copy data byte by byte, handling potential endianness issues
+  for (int i = 0; i < length; i++) {
+    // Assuming little-endian system (adjust for big-endian if needed)
+    str[i] = (char)(data[i] & 0xFF); // Extract the least significant byte
+  }
+  str[length] = '\0'; // Add null terminator
   return str;
 }
 
