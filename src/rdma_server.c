@@ -448,7 +448,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       return ret;
     }
 
-    printf("loop start") int i;
+    printf("loop start");
+    int i;
     for (i = 0; i < 1000; i++) {
       if (clients[i]->index == 0) {
         clients[i] = malloc(sizeof(client));
