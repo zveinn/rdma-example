@@ -1,6 +1,7 @@
 
 #include "rdma_common.h"
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -172,19 +173,15 @@ static int accept_client_connection(client *c) {
   return ret;
 }
 
-char *convert_to_string(uint32_t *data, size_t length) {
-  size_t string_size = length + 1; // Add 1 for null terminator
-  char *str = malloc(string_size * sizeof(char));
+char *convert_to_string(uint32_t *data, uint32_t length) {
+  char *str = malloc(length * sizeof(char));
   if (str == NULL) {
-    // Handle allocation failure (e.g., print error message)
     return NULL;
   }
-  // Copy data byte by byte, handling potential endianness issues
+  printf("length: %d", length);
   for (int i = 0; i < length; i++) {
-    // Assuming little-endian system (adjust for big-endian if needed)
-    str[i] = (char)(data[i] & 0xFF); // Extract the least significant byte
+    printf("> %d", data[i]);
   }
-  str[length] = '\0'; // Add null terminator
   return str;
 }
 
