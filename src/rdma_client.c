@@ -254,6 +254,7 @@ static int client_xchange_metadata_with_server() {
                ret);
     return ret;
   }
+
   /* now we fill up SGE */
   client_send_sge.addr = (uint64_t)client_metadata_mr->addr;
   client_send_sge.length = (uint32_t)client_metadata_mr->length;
@@ -506,15 +507,15 @@ int main(int argc, char **argv) {
     return ret;
   }
 
+  //
+  ret = client_remote_memory_ops();
+  if (ret) {
+    rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
+    return ret;
+  }
   while (1) {
     sleep(2);
   };
-  //
-  // ret = client_remote_memory_ops();
-  // if (ret) {
-  //   rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
-  //   return ret;
-  // }
   // if (check_src_dst()) {
   //   rdma_error("src and dst buffers do not match \n");
   // } else {
