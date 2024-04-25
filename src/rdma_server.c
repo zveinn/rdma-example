@@ -362,8 +362,8 @@ void *handle_client(void *arg) {
   int ret;
   client *c = (client *)arg;
   while (1) {
-    printf("client: %p -- event: %p -- id: %p \n", c, &c->cm_event,
-           &c->cm_event->id);
+    printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
+           c->cm_event->id);
     sleep(2);
   }
 
@@ -464,8 +464,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
 
         cm_event = clients[i]->cm_event;
         debug("new client! %p\n", clients[i]);
-        debug("new event! %p\n", cm_event);
-        debug("new id! %p\n", cm_event->id);
+        debug("new event! %p\n", clients[i]->cm_event);
+        debug("new id! %p\n", clients[i]->cm_event->id);
 
         if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
           perror("pthread_create\n");
