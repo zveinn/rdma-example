@@ -271,6 +271,7 @@ static int client_xchange_metadata_with_server() {
     rdma_error("Failed to send client metadata, errno: %d \n", -errno);
     return -errno;
   }
+
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
    * its buffer information */
@@ -343,13 +344,12 @@ static int client_remote_memory_ops() {
   client_send_wr.wr.rdma.rkey = server_metadata_attr.stag.remote_stag;
   client_send_wr.wr.rdma.remote_addr = server_metadata_attr.address;
   /* Now we post it */
-  // ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
-  // if (ret) {
-  //   rdma_error("Failed to read client dst buffer from the master, errno: %d
-  //   \n",
-  //              -errno);
-  //   return -errno;
-  // }
+  ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
+  if (ret) {
+    rdma_error("Failed to read client dst buffer from the master, errno: %d\n ",
+               errno);
+    return -errno;
+  }
 
   /* at this point we are expecting 1 work completion for the write */
   // ret = process_work_completion_events(io_completion_channel, &wc, 1);
