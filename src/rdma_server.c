@@ -175,7 +175,7 @@ static int accept_client_connection(client *c) {
 static int postConnectReceive(client *c) {
   struct ibv_wc wc;
   int ret = -1;
-  ret = process_work_completion_events(io_completion_channel, &wc, 1);
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
   if (ret != 1) {
     rdma_error("Failed to receive , ret = %d \n", ret);
     return ret;
