@@ -148,8 +148,7 @@ static int accept_client_connection() {
   /* we prepare the receive buffer in which we will receive the client
    * metadata*/
   client_metadata_mr = rdma_buffer_register(
-      pd /* which protection domain */, &client_metadata_attr /* what memory */,
-      sizeof(client_metadata_attr) /* what length */,
+      pd, &client_metadata_attr, sizeof(client_metadata_attr),
       (IBV_ACCESS_LOCAL_WRITE) /* access permissions */
   );
   if (!client_metadata_mr) {
@@ -205,6 +204,7 @@ static int accept_client_connection() {
     rdma_error("Failed to acknowledge the cm event %d\n", -errno);
     return -errno;
   }
+
   /* Just FYI: How to extract connection information */
   memcpy(&remote_sockaddr /* where to save */,
          rdma_get_peer_addr(client_socket) /* gives you remote sockaddr */,
@@ -312,7 +312,7 @@ static int send_server_metadata_to_client() {
 /* This is server side logic. Server passively waits for the client to call
  * rdma_disconnect() and then it will clean up its resources */
 static int disconnect_and_cleanup() {
-  sleep(2);
+  sleep(5);
   printf("DST: %s\n", dst);
   printf("DST: %s\n", dst);
   printf("DST: %s\n", dst);
