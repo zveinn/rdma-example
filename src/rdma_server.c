@@ -172,15 +172,25 @@ static int accept_client_connection(client *c) {
   return ret;
 }
 
+static int postConnectReceive(client *c) {
+  struct ibv_wc wc;
+  int ret = -1;
+  ret = process_work_completion_events(io_completion_channel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("Failed to receive , ret = %d \n", ret);
+    return ret;
+  }
+
+  printf("RECEIVED WORK!\n");
+  printf("Client side buffer information is received...\n");
+  show_rdma_buffer_attr(&c->B1);
+  return 1;
+}
+
 /* This function sends server side buffer metadata to the connected client */
 static int send_server_metadata_to_client() {
   struct ibv_wc wc;
   int ret = -1;
-  /* Now, we first wait for the client to start the communication by
-   * sending the server its metadata info. The server does not use it
-   * in our example. We will receive a work completion notification for
-   * our pre-posted receive request.
-   */
   ret = process_work_completion_events(io_completion_channel, &wc, 1);
   if (ret != 1) {
     rdma_error("Failed to receive , ret = %d \n", ret);
@@ -334,6 +344,11 @@ void *handle_client(void *arg) {
   ret = accept_client_connection(c);
   if (ret) {
     rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+    return NULL;
+  }
+  ret = postConnectReceive(c);
+  if (ret) {
+    rdma_error("failed at last step, ret = %d \n", ret);
     return NULL;
   }
   // ret = send_server_metadata_to_client();

@@ -190,7 +190,8 @@ static int client_pre_post_recv_buffer() {
     rdma_error("Failed to pre-post the receive buffer, errno: %d \n", ret);
     return ret;
   }
-  debug("Receive buffer pre-posting is successful \n");
+  debug("DONE POSTING BUFFER\n");
+  debug("DONE POSTING BUFFER\n");
   return 0;
 }
 
@@ -487,39 +488,40 @@ int main(int argc, char **argv) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
-  ret = client_pre_post_recv_buffer();
-  if (ret) {
-    rdma_error("Failed to setup client connection , ret = %d \n", ret);
-    return ret;
-  }
   ret = client_connect_to_server();
   if (ret) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
 
-  // while (1) {
-  //   sleep(2);
-  // };
-  //
-  ret = client_xchange_metadata_with_server();
+  ret = client_pre_post_recv_buffer();
   if (ret) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
-  ret = client_remote_memory_ops();
-  if (ret) {
-    rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
-    return ret;
-  }
-  if (check_src_dst()) {
-    rdma_error("src and dst buffers do not match \n");
-  } else {
-    printf("...\nSUCCESS, source and destination buffers match \n");
-  }
-  ret = client_disconnect_and_clean();
-  if (ret) {
-    rdma_error("Failed to cleanly disconnect and clean up resources \n");
-  }
+
+  while (1) {
+    sleep(2);
+  };
+  //
+  // ret = client_xchange_metadata_with_server();
+  // if (ret) {
+  //   rdma_error("Failed to setup client connection , ret = %d \n", ret);
+  //   return ret;
+  // }
+  // ret = client_remote_memory_ops();
+  // if (ret) {
+  //   rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
+  //   return ret;
+  // }
+  // if (check_src_dst()) {
+  //   rdma_error("src and dst buffers do not match \n");
+  // } else {
+  //   printf("...\nSUCCESS, source and destination buffers match \n");
+  // }
+  // ret = client_disconnect_and_clean();
+  // if (ret) {
+  //   rdma_error("Failed to cleanly disconnect and clean up resources \n");
+  // }
   return ret;
 }
