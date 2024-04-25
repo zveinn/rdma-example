@@ -361,7 +361,7 @@ void *handle_client(void *arg) {
   int ret;
   client *c = (client *)arg;
   while (1) {
-    printf("client: %p -- event: %p -- id: %p", c, c->cm_event,
+    printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
            c->cm_event->id);
     sleep(2);
   }
@@ -395,7 +395,6 @@ void *handle_client(void *arg) {
 /* Starts an RDMA server by allocating basic connection resources */
 static int start_rdma_server(struct sockaddr_in *server_addr) {
   int ret = -1;
-  struct rdma_cm_event *cm_event = NULL;
   /*  Open a channel used to report asynchronous communication event */
   cm_event_channel = rdma_create_event_channel();
   if (!cm_event_channel) {
@@ -441,6 +440,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   printf("about to process %d\n", 1);
 
   while (1) {
+    struct rdma_cm_event *cm_event = NULL;
     pthread_t thread;
     debug("about to process 2 %d\n", 1);
     ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
@@ -459,6 +459,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         clients[i]->index = i;
         clients[i]->cm_event = cm_event;
         debug("new client! %p\n", clients[i]);
+        debug("new event! %p\n", &cm_event);
+        debug("new id! %p\n", &cm_event->id);
 
         if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
           perror("pthread_create\n");
