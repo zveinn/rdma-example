@@ -494,7 +494,13 @@ int main(int argc, char **argv) {
     return ret;
   }
 
-  ret = client_pre_post_recv_buffer();
+  // ret = client_pre_post_recv_buffer();
+  // if (ret) {
+  //   rdma_error("Failed to setup client connection , ret = %d \n", ret);
+  //   return ret;
+  // }
+
+  ret = client_xchange_metadata_with_server();
   if (ret) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
@@ -504,11 +510,6 @@ int main(int argc, char **argv) {
     sleep(2);
   };
   //
-  // ret = client_xchange_metadata_with_server();
-  // if (ret) {
-  //   rdma_error("Failed to setup client connection , ret = %d \n", ret);
-  //   return ret;
-  // }
   // ret = client_remote_memory_ops();
   // if (ret) {
   //   rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);

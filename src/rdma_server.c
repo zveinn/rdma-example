@@ -175,14 +175,14 @@ static int accept_client_connection(client *c) {
 static int postConnectReceive(client *c) {
   struct ibv_wc wc;
   int ret = -1;
+  printf("WAITING FOR WORK ....%d\n", 1);
   ret = process_work_completion_events(c->completionChannel, &wc, 1);
   if (ret != 1) {
     rdma_error("Failed to receive , ret = %d \n", ret);
     return ret;
   }
 
-  printf("RECEIVED WORK!\n");
-  printf("Client side buffer information is received...\n");
+  printf("RECEIVED WORK! %d\n", 1);
   show_rdma_buffer_attr(&c->B1);
   return 1;
 }
