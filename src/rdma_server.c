@@ -336,12 +336,12 @@ void *handle_client(void *arg) {
     rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return NULL;
   }
-  ret = send_server_metadata_to_client();
-  if (ret) {
-    rdma_error("Failed to send server metadata to the client, ret = %d \n",
-               ret);
-    return NULL;
-  }
+  // ret = send_server_metadata_to_client();
+  // if (ret) {
+  //   rdma_error("Failed to send server metadata to the client, ret = %d \n",
+  //              ret);
+  //   return NULL;
+  // }
   // ret = disconnect_and_cleanup();
   // if (ret) {
   //   rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
