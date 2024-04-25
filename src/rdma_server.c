@@ -357,6 +357,7 @@ static int disconnect_and_cleanup() {
 }
 
 void *handle_client(void *arg) {
+  printf("inside thread");
   int ret;
   client *c = (client *)arg;
   while (1) {
@@ -394,6 +395,7 @@ void *handle_client(void *arg) {
 /* Starts an RDMA server by allocating basic connection resources */
 static int start_rdma_server(struct sockaddr_in *server_addr) {
   int ret = -1;
+  struct rdma_cm_event *cm_event = NULL;
   /*  Open a channel used to report asynchronous communication event */
   cm_event_channel = rdma_create_event_channel();
   if (!cm_event_channel) {
@@ -439,7 +441,6 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
 
   while (1) {
     pthread_t thread;
-    struct rdma_cm_event *cm_event = NULL;
     ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
                                 &cm_event);
     if (ret) {
@@ -447,7 +448,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       return ret;
     }
 
-    int i;
+    printf("loop start") int i;
     for (i = 0; i < 1000; i++) {
       if (clients[i]->index == 0) {
         clients[i] = malloc(sizeof(client));
