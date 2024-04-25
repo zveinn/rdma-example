@@ -178,9 +178,9 @@ char *convert_to_string(uint32_t *data, uint32_t length) {
   if (str == NULL) {
     return NULL;
   }
-  printf("length: %d", length);
+  printf("length: %d\n", length);
   for (int i = 0; i < length; i++) {
-    printf("> %d", data[i]);
+    printf("> %d\n", data[i]);
   }
   return str;
 }
