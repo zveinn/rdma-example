@@ -1,4 +1,0 @@
-/home/sveinn/go-code/rdma-example/CMakeFiles/rdma_server.dir
-/home/sveinn/go-code/rdma-example/CMakeFiles/rdma_client.dir
-/home/sveinn/go-code/rdma-example/CMakeFiles/edit_cache.dir
-/home/sveinn/go-code/rdma-example/CMakeFiles/rebuild_cache.dir
