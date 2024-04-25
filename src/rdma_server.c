@@ -432,7 +432,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
                -errno);
     return -errno;
   }
-  printf("Server is listening successfully at: %s , port: %d \n",
+  printf("xxxxx Server is listening successfully at: %s , port: %d \n",
          inet_ntoa(server_addr->sin_addr), ntohs(server_addr->sin_port));
   /* now, we expect a client to connect and generate a
    * RDMA_CM_EVNET_CONNECT_REQUEST We wait (block) on the connection management
