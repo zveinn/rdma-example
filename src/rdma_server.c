@@ -14,6 +14,19 @@ typedef struct {
   struct ibv_pd *PD;
   struct ibv_cq *CQ;
   struct ibv_qp_init_attr QP;
+
+  struct ibv_mr *MR;
+  // struct ibv_mr *SERVER_MR;
+  // struct ibv_mr *SERVER_BUFFER_MR;
+  struct ibv_sge SGE;
+  struct ibv_recv_wr RCV_WR;
+  struct ibv_recv_wr *BAD_RCV_WR;
+  // struct ibv_recv_wr RCV_WR;
+
+  struct rdma_buffer_attr B1;
+  struct rdma_buffer_attr B2;
+  struct rdma_buffer_attr B3;
+  struct rdma_buffer_attr B4;
   int index;
 } client;
 
@@ -26,6 +39,7 @@ static struct ibv_comp_channel *io_completion_channel = NULL;
 static struct ibv_cq *cq = NULL;
 static struct ibv_qp_init_attr qp_init_attr;
 static struct ibv_qp *client_qp = NULL;
+
 /* RDMA memory resources */
 static struct ibv_mr *client_metadata_mr = NULL, *server_buffer_mr = NULL,
                      *server_metadata_mr = NULL;
@@ -84,39 +98,28 @@ static int setup_client_resources(client *c) {
 }
 
 /* Pre-posts a receive buffer and accepts an RDMA client connection */
-static int accept_client_connection() {
+static int accept_client_connection(client *c) {
   struct rdma_conn_param conn_param;
   struct rdma_cm_event *cm_event = NULL;
   struct sockaddr_in remote_sockaddr;
   int ret = -1;
-  // if (!ClientSocket || !client_qp) {
-  //   rdma_error("Client resources are not properly setup\n");
-  //   return -EINVAL;
-  // }
-  /* we prepare the receive buffer in which we will receive the client
-   * metadata*/
-  client_metadata_mr = rdma_buffer_register(
-      PD /* which protection domain */, &client_metadata_attr /* what memory */,
-      sizeof(client_metadata_attr) /* what length */,
-      (IBV_ACCESS_LOCAL_WRITE) /* access permissions */
-  );
-  if (!client_metadata_mr) {
-    rdma_error("Failed to register client attr buffer\n");
-    // we assume ENOMEM
+
+  c->MR = rdma_buffer_register(c->PD, &c->B1, sizeof(c->B1),
+                               (IBV_ACCESS_LOCAL_WRITE));
+  if (!c->MR) {
+    rdma_error("++CLIENT_MR(error)\n");
     return -ENOMEM;
   }
-  /* We pre-post this receive buffer on the QP. SGE credentials is where we
-   * receive the metadata from the client */
-  client_recv_sge.addr = (uint64_t)client_metadata_mr->addr;
-  client_recv_sge.length = client_metadata_mr->length;
-  client_recv_sge.lkey = client_metadata_mr->lkey;
-  /* Now we link this SGE to the work request (WR) */
-  bzero(&client_recv_wr, sizeof(client_recv_wr));
-  client_recv_wr.sg_list = &client_recv_sge;
-  client_recv_wr.num_sge = 1; // only one SGE
-  ret = ibv_post_recv(client_qp /* which QP */,
-                      &client_recv_wr /* receive work request*/,
-                      &bad_client_recv_wr /* error WRs */);
+
+  c->SGE.addr = (uint64_t)c->MR->addr;
+  c->SGE.length = c->MR->length;
+  c->SGE.lkey = c->MR->lkey;
+
+  bzero(&c->RCV_WR, sizeof(c->RCV_WR));
+  c->RCV_WR.sg_list = &c->SGE;
+  c->RCV_WR.num_sge = 1;
+
+  ret = ibv_post_recv(c->cm_event_id->qp, &c->RCV_WR, &c->BAD_RCV_WR);
   if (ret) {
     rdma_error("Failed to pre-post the receive buffer, errno: %d \n", ret);
     return ret;
@@ -131,7 +134,7 @@ static int accept_client_connection() {
   /* This tell how many outstanding requests we expect other side to handle */
   conn_param.responder_resources =
       3; /* For this exercise, we put a small number */
-  ret = rdma_accept(ClientSocket, &conn_param);
+  ret = rdma_accept(c->cm_event_id, &conn_param);
   if (ret) {
     rdma_error("Failed to accept the connection, errno: %d \n", -errno);
     return -errno;
@@ -155,7 +158,7 @@ static int accept_client_connection() {
   }
   /* Just FYI: How to extract connection information */
   memcpy(&remote_sockaddr /* where to save */,
-         rdma_get_peer_addr(ClientSocket) /* gives you remote sockaddr */,
+         rdma_get_peer_addr(c->cm_event_id) /* gives you remote sockaddr */,
          sizeof(struct sockaddr_in) /* max size */);
   printf("A new connection is accepted from %s \n",
          inet_ntoa(remote_sockaddr.sin_addr));
@@ -321,11 +324,11 @@ void *handle_client(void *arg) {
     rdma_error("Failed to setup client resources, ret = %d \n", ret);
     return NULL;
   }
-  // ret = accept_client_connection();
-  // if (ret) {
-  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-  //   return NULL;
-  // }
+  ret = accept_client_connection(c);
+  if (ret) {
+    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+    return NULL;
+  }
   // ret = send_server_metadata_to_client();
   // if (ret) {
   //   rdma_error("Failed to send server metadata to the client, ret = %d \n",
@@ -349,21 +352,21 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
     rdma_error("Creating cm event channel failed with errno : (%d)", -errno);
     return -errno;
   }
-  debug("+EventChannel: %p", EventChannel);
+  debug("+EventChannel: %p\n", EventChannel);
 
   ret = rdma_create_id(EventChannel, &ServerID, NULL, RDMA_PS_TCP);
   if (ret) {
     rdma_error("Creating server cm id failed with errno: %d ", -errno);
     return -errno;
   }
-  debug("+ServerID: %p", ServerID);
+  debug("+ServerID: %p\n", ServerID);
 
   ret = rdma_bind_addr(ServerID, (struct sockaddr *)server_addr);
   if (ret) {
     rdma_error("Failed to bind server address, errno: %d \n", -errno);
     return -errno;
   }
-  debug("+BIND to ServerID: %p", ServerID);
+  debug("+BIND to ServerID: %p\n", ServerID);
 
   ret = rdma_listen(ServerID, 8);
   if (ret) {
