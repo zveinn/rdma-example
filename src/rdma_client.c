@@ -497,6 +497,10 @@ int main(int argc, char **argv) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
+
+  while (1) {
+    sleep(2);
+  };
   // ret = client_xchange_metadata_with_server();
   // if (ret) {
   //   rdma_error("Failed to setup client connection , ret = %d \n", ret);
