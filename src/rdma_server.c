@@ -176,7 +176,7 @@ static int postConnectReceive(client *c) {
   struct ibv_wc wc;
   int ret = -1;
   printf("WAITING FOR WORK ....%d\n", 1);
-  ret = process_work_completion_events(c->completionChannel, &wc, 2);
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
   if (ret != 1) {
     rdma_error("Failed to receive , ret = %d \n", ret);
     return ret;
@@ -184,6 +184,14 @@ static int postConnectReceive(client *c) {
 
   printf("RECEIVED WORK! %d\n", 1);
   show_rdma_buffer_attr(&c->B1);
+
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("Failed to receive , ret = %d \n", ret);
+    return ret;
+  }
+
+  printf("RECEIVED WORK 2222 ! %d\n", 1);
   return 1;
 }
 

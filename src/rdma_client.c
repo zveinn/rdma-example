@@ -508,7 +508,6 @@ int main(int argc, char **argv) {
     return ret;
   }
 
-  //
   ret = client_remote_memory_ops();
   if (ret) {
     rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
