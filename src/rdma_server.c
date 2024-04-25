@@ -156,19 +156,19 @@ static int accept_client_connection(client *c) {
   printf("A new connection is accepted from %s \n",
          inet_ntoa(remote_sockaddr.sin_addr));
 
-  printf("CLIENT: %p", c);
-  printf("CompCHan %p", c->completionChannel);
-  printf("PD %p", c->PD);
-  printf("CQ %p", c->CQ);
-  printf("QP %p", &c->QP);
-  printf("MR %p", c->MR);
-  printf("SGE %p", &c->SGE);
-  printf("RCV_WR %p", &c->RCV_WR);
-  printf("BAD-- %p", c->BAD_RCV_WR);
-  printf("B1 %p", &c->B1);
-  printf("B2 %p", &c->B2);
-  printf("B3 %p", &c->B3);
-  printf("B4 %p", &c->B4);
+  printf("CLIENT: %p \n", c);
+  printf("CompCHan %p \n", c->completionChannel);
+  printf("PD %p \n", c->PD);
+  printf("CQ %p \n", c->CQ);
+  printf("QP %p \n", &c->QP);
+  printf("MR %p \n", c->MR);
+  printf("SGE %p \n", &c->SGE);
+  printf("RCV_WR %p \n", &c->RCV_WR);
+  printf("BAD-- %p \n", c->BAD_RCV_WR);
+  printf("B1 %p \n", &c->B1);
+  printf("B2 %p \n", &c->B2);
+  printf("B3 %p \n", &c->B3);
+  printf("B4 %p \n", &c->B4);
 
   return ret;
 }
