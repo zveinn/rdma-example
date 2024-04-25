@@ -491,17 +491,17 @@ int main(int argc, char **argv) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
+  ret = client_pre_post_recv_buffer();
+  if (ret) {
+    rdma_error("Failed to setup client connection , ret = %d \n", ret);
+    return ret;
+  }
   ret = client_connect_to_server();
   if (ret) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
 
-  // ret = client_pre_post_recv_buffer();
-  // if (ret) {
-  //   rdma_error("Failed to setup client connection , ret = %d \n", ret);
-  //   return ret;
-  // }
   sleep(2);
 
   ret = client_xchange_metadata_with_server();
