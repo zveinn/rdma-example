@@ -453,8 +453,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
 
     debug("about to process 4 %d\n", 1);
     int i;
-    for (i = 0; i < 999; i++) {
-      if (clients[i]->index == 0) {
+    for (i = 0; i < 1000; i++) {
+      if (clients[i] == 0) {
         clients[i] = malloc(sizeof(client));
         clients[i]->index = i;
         clients[i]->cm_event = cm_event;
