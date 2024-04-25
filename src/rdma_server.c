@@ -438,11 +438,15 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
    * RDMA_CM_EVNET_CONNECT_REQUEST We wait (block) on the connection management
    * event channel for the connect event.
    */
+  printf("about to process");
+  printf("about to process");
 
   while (1) {
     pthread_t thread;
+    printf("about to process2");
     ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
                                 &cm_event);
+    printf("done!");
     if (ret) {
       rdma_error("Failed to get cm event, ret = %d \n", ret);
       return ret;
