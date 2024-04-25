@@ -274,13 +274,13 @@ static int client_xchange_metadata_with_server() {
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
    * its buffer information */
-  ret = process_work_completion_events(io_completion_channel, wc, 2);
-  if (ret != 2) {
-    rdma_error("We failed to get 2 work completions , ret = %d \n", ret);
-    return ret;
-  }
+  // ret = process_work_completion_events(io_completion_channel, wc, 2);
+  // if (ret != 2) {
+  //   rdma_error("We failed to get 2 work completions , ret = %d \n", ret);
+  //   return ret;
+  // }
   debug("Server sent us its buffer location and credentials, showing \n");
-  show_rdma_buffer_attr(&server_metadata_attr);
+  // show_rdma_buffer_attr(&server_metadata_attr);
   return 0;
 }
 
