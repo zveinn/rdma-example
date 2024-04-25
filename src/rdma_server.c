@@ -347,12 +347,12 @@ static int disconnect_and_cleanup() {
     // we continue anyways;
   }
   /* Destroy rdma server id */
-  ret = rdma_destroy_id(server_socket);
-  if (ret) {
-    rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
-    // we continue anyways;
-  }
-  rdma_destroy_event_channel(cm_event_channel);
+  // ret = rdma_destroy_id(server_socket);
+  // if (ret) {
+  //   rdma_error("Failed to destroy server id cleanly, %d \n", -errno);
+  //   // we continue anyways;
+  // }
+  // rdma_destroy_event_channel(cm_event_channel);
   printf("Server shut-down is complete \n");
   return 0;
 }
@@ -436,14 +436,12 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
    * RDMA_CM_EVNET_CONNECT_REQUEST We wait (block) on the connection management
    * event channel for the connect event.
    */
-  printf("about to process %d\n", 1);
+  printf("STARTING LOOP %d\n", 1);
 
   while (1) {
     struct rdma_cm_event *cm_event = NULL;
     pthread_t thread;
-    debug("about to process 2 %d\n", 1);
 
-    debug("about to process 4 %d\n", 1);
     int i;
     for (i = 0; i < 1000; i++) {
       if (clients[i] == 0) {
@@ -452,6 +450,9 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         // clients[i]->cm_event = malloc(sizeof(struct rdma_cm_event));
         // clients[i]->cm_event->id = malloc(sizeof(struct rdma_cm_id));
         // clients[i]->cm_event = *cm_event;
+        debug("WAITING ON CLIENT %d \n", 1);
+        debug("WAITING ON CLIENT %d \n", 1);
+        debug("WAITING ON CLIENT %d \n", 1);
         ret = process_rdma_cm_event(cm_event_channel,
                                     RDMA_CM_EVENT_CONNECT_REQUEST,
                                     &clients[i]->cm_event);
