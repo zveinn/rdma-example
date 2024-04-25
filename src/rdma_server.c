@@ -357,38 +357,40 @@ static int disconnect_and_cleanup() {
   return 0;
 }
 
-void *handle_client(void *arg) {
+// void *handle_client(void *arg) {
+void *handle_client(client *c) {
   printf("inside thread");
   int ret;
-  client *c = (client *)arg;
+  // client *c = (client *)arg;
+  client_socket = c->cm_event->id;
+
   while (1) {
     printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
            c->cm_event->id);
     sleep(2);
   }
 
-  // ret = setup_client_resources();
-  // if (ret) {
-  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
-  //   return NULL;
-  // }
-  // ret = accept_client_connection();
-  // if (ret) {
-  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-  //   return NULL;
-  // }
-  // ret = send_server_metadata_to_client();
-  // if (ret) {
-  //   rdma_error("Failed to send server metadata to the client, ret = %d
-  //   \n",
-  //              ret);
-  //   return NULL;
-  // }
-  // ret = disconnect_and_cleanup();
-  // if (ret) {
-  //   rdma_error("Failed to clean up resources properly, ret = %d \n",
-  //   ret); return NULL;
-  // }
+  ret = setup_client_resources();
+  if (ret) {
+    rdma_error("Failed to setup client resources, ret = %d \n", ret);
+    return NULL;
+  }
+  ret = accept_client_connection();
+  if (ret) {
+    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+    return NULL;
+  }
+  ret = send_server_metadata_to_client();
+  if (ret) {
+    rdma_error("Failed to send server metadata to the client, ret = %d \n",
+               ret);
+    return NULL;
+  }
+  ret = disconnect_and_cleanup();
+  if (ret) {
+    rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
+    return NULL;
+  }
 
   return NULL;
 }
@@ -451,8 +453,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       if (clients[i] == 0) {
         clients[i] = malloc(sizeof(client));
         clients[i]->index = i;
-        clients[i]->cm_event = malloc(sizeof(struct rdma_cm_event));
-        clients[i]->cm_event->id = malloc(sizeof(struct rdma_cm_id));
+        // clients[i]->cm_event = malloc(sizeof(struct rdma_cm_event));
+        // clients[i]->cm_event->id = malloc(sizeof(struct rdma_cm_id));
         // clients[i]->cm_event = *cm_event;
         ret = process_rdma_cm_event(cm_event_channel,
                                     RDMA_CM_EVENT_CONNECT_REQUEST,
@@ -463,14 +465,21 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
           return ret;
         }
 
-        cm_event = clients[i]->cm_event;
-        debug("new client! %p\n", clients[i]);
-        debug("new event! %p\n", clients[i]->cm_event);
-        debug("new id! %p\n", clients[i]->cm_event->id);
+        // cm_event = clients[i]->cm_event;
+        // debug("new client! %p\n", clients[i]);
+        // debug("new event! %p\n", clients[i]->cm_event);
+        // debug("new id! %p\n", clients[i]->cm_event->id);
 
-        if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
-          perror("pthread_create\n");
-          exit(EXIT_FAILURE);
+        // if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
+        //   perror("pthread_create\n");
+        //   exit(EXIT_FAILURE);
+        // }
+        //
+        handle_client(clients[i]);
+        ret = rdma_ack_cm_event(clients[i]->cm_event);
+        if (ret) {
+          rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
+          return -errno;
         }
         break;
       }
@@ -490,12 +499,12 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
      * client id from "id" field before acknowledging the event.
      */
     debug("about to process 6 %d\n", 1);
-    ret = rdma_ack_cm_event(cm_event);
-    if (ret) {
-      rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
-      return -errno;
-    }
-    debug("A new RDMA client connection id is stored at %p\n", cm_event->id);
+    // ret = rdma_ack_cm_event(clients[i]->cm_event);
+    // if (ret) {
+    //   rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
+    //   return -errno;
+    // }
+    // debug("A new RDMA client connection id is stored at %p\n", cm_event->id);
   }
 
   return ret;
