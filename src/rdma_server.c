@@ -30,7 +30,7 @@ static struct ibv_send_wr server_send_wr, *bad_server_send_wr = NULL;
 static struct ibv_sge client_recv_sge, server_send_sge;
 
 typedef struct {
-  struct rdma_cm_event cm_event;
+  struct rdma_cm_event *cm_event;
   // struct rdma_cm_id *cm_event_id;
   int index;
 } client;
@@ -363,7 +363,7 @@ void *handle_client(void *arg) {
   client *c = (client *)arg;
   while (1) {
     printf("client: %p -- event: %p -- id: %p \n", c, &c->cm_event,
-           &c->cm_event.id);
+           &c->cm_event->id);
     sleep(2);
   }
 
@@ -444,13 +444,6 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
     struct rdma_cm_event *cm_event = NULL;
     pthread_t thread;
     debug("about to process 2 %d\n", 1);
-    ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
-                                &cm_event);
-    debug("about to process 3 %d\n", 1);
-    if (ret) {
-      rdma_error("Failed to get cm event, ret = %d \n", ret);
-      return ret;
-    }
 
     debug("about to process 4 %d\n", 1);
     int i;
@@ -459,7 +452,17 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         clients[i] = malloc(sizeof(client));
         clients[i]->index = i;
         // clients[i]->cm_event = malloc(sizeof(struct rdma_cm_event));
-        clients[i]->cm_event = *cm_event;
+        // clients[i]->cm_event = *cm_event;
+        ret = process_rdma_cm_event(cm_event_channel,
+                                    RDMA_CM_EVENT_CONNECT_REQUEST,
+                                    &clients[i]->cm_event);
+        debug("about to process 3 %d\n", 1);
+        if (ret) {
+          rdma_error("Failed to get cm event, ret = %d \n", ret);
+          return ret;
+        }
+
+        cm_event = clients[i]->cm_event;
         debug("new client! %p\n", clients[i]);
         debug("new event! %p\n", cm_event);
         debug("new id! %p\n", cm_event->id);
