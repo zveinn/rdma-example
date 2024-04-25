@@ -22,10 +22,20 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include <infiniband/verbs.h>
-#include <rdma/rdma_cma.h>
-// #include "../rdma/rdma_cma.h"
+// #include <infiniband/verbs.h>
+// #include <rdma/rdma_cma.h>
 // #include "../infiniband/verbs.h"
+// #include "../rdma/rdma_cma.h"
+
+#define LOCAL_HEADER (0)
+#ifdef LOCAL_HEADER
+#include "../infiniband/verbs.h"
+#include "../rdma/rdma_cma.h"
+#endif
+#ifdef SERVER_HEADER
+// #include <infiniband/verbs.h>
+// #include <rdma/rdma_cma.h>
+#endif
 
 /* Error Macro*/
 #define rdma_error(msg, args...)                                               \

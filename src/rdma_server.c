@@ -359,7 +359,11 @@ static int disconnect_and_cleanup() {
 void *handle_client(void *arg) {
   int ret;
   client *c = (client *)arg;
-  printf("client: %p -- event: %p -- id: %p", c, c->cm_event, c->cm_event->id);
+  while (1) {
+    printf("client: %p -- event: %p -- id: %p", c, c->cm_event,
+           c->cm_event->id);
+    sleep(2);
+  }
 
   // ret = setup_client_resources();
   // if (ret) {
@@ -389,7 +393,6 @@ void *handle_client(void *arg) {
 
 /* Starts an RDMA server by allocating basic connection resources */
 static int start_rdma_server(struct sockaddr_in *server_addr) {
-  struct rdma_cm_event *cm_event = NULL;
   int ret = -1;
   /*  Open a channel used to report asynchronous communication event */
   cm_event_channel = rdma_create_event_channel();
@@ -436,6 +439,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   pthread_t thread;
 
   while (1) {
+    struct rdma_cm_event *cm_event = NULL;
     ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_CONNECT_REQUEST,
                                 &cm_event);
     if (ret) {
@@ -445,19 +449,17 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
 
     int i;
     for (i = 0; i < 1000; i++) {
-      if (clients[i] != 0) {
-        continue;
-      }
+      if (clients[i]->index == 0) {
+        clients[i] = malloc(sizeof(client));
+        clients[i]->index = i;
+        clients[i]->cm_event = cm_event;
 
-      clients[i] = malloc(sizeof(client));
-      clients[i]->index = i;
-      clients[i]->cm_event = cm_event;
-
-      if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
-        perror("pthread_create");
-        exit(EXIT_FAILURE);
+        if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
+          perror("pthread_create");
+          exit(EXIT_FAILURE);
+        }
+        break;
       }
-      break;
     }
 
     /* Much like TCP connection, listening returns a new connection identifier
