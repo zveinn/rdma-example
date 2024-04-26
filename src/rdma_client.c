@@ -5,6 +5,7 @@
  */
 
 #include "rdma_common.h"
+#include <stdio.h>
 
 /* These are basic RDMA resources */
 /* These are RDMA connection related resources */
@@ -241,6 +242,7 @@ static int client_xchange_metadata_with_server() {
     rdma_error("Failed to register the first buffer, ret = %d \n", ret);
     return ret;
   }
+  printf("D1 \n");
   /* we prepare metadata for the first buffer */
   client_metadata_attr.address = (uint64_t)client_src_mr->addr;
   client_metadata_attr.length = client_src_mr->length;
@@ -254,6 +256,7 @@ static int client_xchange_metadata_with_server() {
                ret);
     return ret;
   }
+  printf("D2 \n");
 
   /* now we fill up SGE */
   client_send_sge.addr = (uint64_t)client_metadata_mr->addr;
@@ -271,6 +274,7 @@ static int client_xchange_metadata_with_server() {
     rdma_error("Failed to send client metadata, errno: %d \n", -errno);
     return -errno;
   }
+  printf("D3 \n");
 
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
