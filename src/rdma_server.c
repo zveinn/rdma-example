@@ -420,6 +420,7 @@ static void connectionEstablished(struct rdma_cm_event *event) {
           perror("++THREAD(failed)\n");
           exit(EXIT_FAILURE);
         }
+        printf("DONE\n");
         break;
       }
       // if (requested_clients[i]->cm_event->param.conn.qp_num ==
@@ -502,6 +503,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       rdma_error("ACK event errno: %d \n", -errno);
       continue;
     }
+    printf("...sleep\n");
     sleep(2);
   }
   //
