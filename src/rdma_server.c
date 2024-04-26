@@ -258,7 +258,6 @@ static int send_server_metadata_to_client(client *c) {
     return ret;
   }
 
-  sleep(1);
   printf("???...\n");
   show_rdma_buffer_attr(&c->metaAttr);
   printf("?? : %u bytes \n", c->metaAttr.length);
