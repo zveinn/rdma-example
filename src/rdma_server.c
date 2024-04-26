@@ -135,6 +135,7 @@ static int accept_client_connection(client *c) {
   ret = rdma_accept(c->cm_event_id, &conn_param);
   if (ret) {
     rdma_error("++ACCEPT(error), errno: %d \n", -errno);
+
     return -errno;
   }
 
@@ -405,17 +406,16 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
         debug("WAITING ON CLIENT %d \n", 1);
         ret = process_rdma_cm_event(EventChannel, RDMA_CM_EVENT_CONNECT_REQUEST,
                                     &clients[i]->cm_event);
+        ret = rdma_ack_cm_event(clients[i]->cm_event);
+        if (ret) {
+          rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
+          return -errno;
+        }
 
         clients[i]->cm_event_id = clients[i]->cm_event->id;
         if (ret) {
           rdma_error("Failed to get cm event, ret = %d \n", ret);
           return ret;
-        }
-
-        ret = rdma_ack_cm_event(clients[i]->cm_event);
-        if (ret) {
-          rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
-          return -errno;
         }
 
         if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
