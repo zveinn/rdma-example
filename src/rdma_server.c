@@ -371,6 +371,7 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
       requested_clients[i] = malloc(sizeof(client));
       requested_clients[i]->index = i;
       requested_clients[i]->cm_event_id = event->id;
+      requested_clients[i]->cm_event = event;
       break;
     }
   }
@@ -388,16 +389,28 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
   }
 }
 static void acceptConnection(struct rdma_cm_event *event) {
-
   int i;
   for (i = 0; i < 10000; i++) {
-    if (clients[i] == 0) {
-      clients[i] = malloc(sizeof(client));
-      clients[i]->index = i;
-      clients[i]->cm_event_id = event->id;
-      break;
+    if (requested_clients[i] != 0) {
+      printf("COMPARE: %d == %d",
+             requested_clients[i]->cm_event->param.conn.qp_num,
+             event->param.conn.qp_num);
+
+      if (requested_clients[i]->cm_event->param.conn.qp_num ==
+          event->param.conn.qp_num) {
+        printf("FOUND IT!\n");
+      }
     }
   }
+
+  // for (i = 0; i < 10000; i++) {
+  //   if (clients[i] == 0) {
+  //     clients[i] = malloc(sizeof(client));
+  //     clients[i]->index = i;
+  //     clients[i]->cm_event_id = event->id;
+  //     break;
+  //   }
+  // }
 }
 
 /* Starts an RDMA server by allocating basic connection resources */
@@ -443,6 +456,9 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       break;
     case RDMA_CM_EVENT_ESTABLISHED:
       acceptConnection(event);
+      break;
+    case RDMA_CM_EVENT_DISCONNECTED:
+      // acceptConnection(event);
       break;
     default:
       printf("Unknown event: %s\n", rdma_event_str(event->event));
