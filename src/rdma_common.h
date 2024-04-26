@@ -103,6 +103,14 @@ int process_rdma_cm_event(struct rdma_event_channel *echannel,
                           enum rdma_cm_event_type expected_event,
                           struct rdma_cm_event **cm_event);
 
+/*
+ * Get a RDMA connection management (CM) event.
+ * @echannel: CM event channel where the event is expected.
+ * @cm_event: where the event will be stored
+ */
+int get_rdma_cm_event(struct rdma_event_channel *echannel,
+                      struct rdma_cm_event **cm_event);
+
 /* Allocates an RDMA buffer of size 'length' with permission permission. This
  * function will also register the memory and returns a memory region (MR)
  * identifier or NULL on error.

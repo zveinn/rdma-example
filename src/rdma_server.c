@@ -39,7 +39,8 @@ typedef struct {
   int index;
 } client;
 
-client *clients[1000];
+client *clients[10000];
+client *requested_clients[10000];
 
 static int disconnectServer() {
   int ret = -1;
@@ -361,6 +362,31 @@ void *handle_client(void *arg) {
   return NULL;
 }
 
+static void initializeConnectionRequest(struct rdma_cm_event *event) {
+
+  int i;
+  for (i = 0; i < 10000; i++) {
+    if (requested_clients[i] == 0) {
+      requested_clients[i] = malloc(sizeof(client));
+      requested_clients[i]->index = i;
+      requested_clients[i]->cm_event_id = event->id;
+      break;
+    }
+  }
+}
+static void acceptConnection(struct rdma_cm_event *event) {
+
+  int i;
+  for (i = 0; i < 10000; i++) {
+    if (clients[i] == 0) {
+      clients[i] = malloc(sizeof(client));
+      clients[i]->index = i;
+      clients[i]->cm_event_id = event->id;
+      break;
+    }
+  }
+}
+
 /* Starts an RDMA server by allocating basic connection resources */
 static int start_rdma_server(struct sockaddr_in *server_addr) {
   int ret = -1;
@@ -394,38 +420,60 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   printf("LISTEN @ %s , port: %d \n", inet_ntoa(server_addr->sin_addr),
          ntohs(server_addr->sin_port));
 
+  struct rdma_cm_event *event;
   while (1) {
-    pthread_t thread;
+    ret = get_rdma_cm_event(EventChannel, &event);
 
-    int i;
-    for (i = 0; i < 1000; i++) {
-      if (clients[i] == 0) {
-        clients[i] = malloc(sizeof(client));
-        clients[i]->index = i;
-
-        debug("WAITING ON CLIENT %d \n", 1);
-        ret = process_rdma_cm_event(EventChannel, RDMA_CM_EVENT_CONNECT_REQUEST,
-                                    &clients[i]->cm_event);
-        ret = rdma_ack_cm_event(clients[i]->cm_event);
-        if (ret) {
-          rdma_error("Failed to acknowledge the cm event errno: %d \n", -errno);
-          return -errno;
-        }
-
-        clients[i]->cm_event_id = clients[i]->cm_event->id;
-        if (ret) {
-          rdma_error("Failed to get cm event, ret = %d \n", ret);
-          return ret;
-        }
-
-        if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
-          perror("++THREAD(failed)\n");
-          exit(EXIT_FAILURE);
-        }
-        break;
-      }
+    switch (event->event) {
+    case RDMA_CM_EVENT_CONNECT_REQUEST:
+      initializeConnectionRequest(event);
+    case RDMA_CM_EVENT_ESTABLISHED:
+      acceptConnection(event);
+    default:
+      printf("Unknown event: %s", rdma_event_str(event->event));
+    }
+    ret = rdma_ack_cm_event(event);
+    if (ret) {
+      rdma_error(" event errno: %d \n", -errno);
+      // return -errno;
+      continue;
     }
   }
+  //
+  // while (1) {
+  //   pthread_t thread;
+  //
+  //   int i;
+  //   for (i = 0; i < 1000; i++) {
+  //     if (clients[i] == 0) {
+  //       clients[i] = malloc(sizeof(client));
+  //       clients[i]->index = i;
+  //
+  //       // debug("WAITING ON CLIENT %d \n", 1);
+  //       // ret = process_rdma_cm_event(EventChannel,
+  //       // RDMA_CM_EVENT_CONNECT_REQUEST, );
+  //       ret = rdma_ack_cm_event(clients[i]->cm_event);
+  //       if (ret) {
+  //         rdma_error("Failed to acknowledge the cm "
+  //                    "event errno: %d \n",
+  //                    -errno);
+  //         return -errno;
+  //       }
+  //
+  //       clients[i]->cm_event_id = clients[i]->cm_event->id;
+  //       if (ret) {
+  //         rdma_error("Failed to get cm event, ret = %d \n", ret);
+  //         return ret;
+  //       }
+  //
+  //       if (pthread_create(&thread, NULL, handle_client, clients[i]) != 0) {
+  //         perror("++THREAD(failed)\n");
+  //         exit(EXIT_FAILURE);
+  //       }
+  //       break;
+  //     }
+  //   }
+  // }
 
   return ret;
 }
