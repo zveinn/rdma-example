@@ -345,7 +345,7 @@ static int disconnect_and_cleanup(client *c) {
 
 void *handle_client(void *arg) {
   // void *handle_client(client *c) {
-  printf("inside thread");
+  printf("inside thread\n");
   int ret;
   client *c = (client *)arg;
   printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
@@ -488,7 +488,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
     case RDMA_CM_EVENT_ESTABLISHED:
       connectionEstablished(event);
       printf("...sleep\n");
-      sleep(2);
+      // sleep(2);
       break;
     case RDMA_CM_EVENT_DISCONNECTED:
       // acceptConnection(event);
