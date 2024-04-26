@@ -520,11 +520,11 @@ int main(int argc, char **argv) {
     rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
     return ret;
   }
-  if (check_src_dst()) {
-    rdma_error("src and dst buffers do not match \n");
-  } else {
-    printf("...\nSUCCESS, source and destination buffers match \n");
-  }
+  // if (check_src_dst()) {
+  //   rdma_error("src and dst buffers do not match \n");
+  // } else {
+  //   printf("...\nSUCCESS, source and destination buffers match \n");
+  // }
   // sleep(10);
   // ret = client_disconnect_and_clean();
   // if (ret) {
@@ -532,6 +532,11 @@ int main(int argc, char **argv) {
   // }
   //
   while (1) {
+    if (check_src_dst()) {
+      rdma_error("src and dst buffers do not match \n");
+    } else {
+      printf("...\nSUCCESS, source and destination buffers match \n");
+    }
     sleep(2);
   };
   return ret;

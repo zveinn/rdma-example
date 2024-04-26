@@ -384,6 +384,7 @@ void *handle_client(void *arg) {
   // }
   //
   while (1) {
+    printf("dat: %s", c->dataBuffer);
     sleep(1);
   };
 
