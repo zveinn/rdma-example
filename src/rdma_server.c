@@ -178,12 +178,12 @@ static int register_meta(client *c) {
   }
   debug("++IBV_POST_REC \n");
 
-  // struct ibv_wc wc;
-  // ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  // if (ret != 1) {
-  //   rdma_error("Failed to receive , ret = %d \n", ret);
-  //   return ret;
-  // }
+  struct ibv_wc wc;
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("Failed to receive , ret = %d \n", ret);
+    return ret;
+  }
 
   // memset(&conn_param, 0, sizeof(conn_param));
   //
@@ -365,12 +365,11 @@ void *handle_client(void *arg) {
   //   return NULL;
   // }
 
-  ret = register_meta(c);
-  if (ret) {
-    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-    return NULL;
-  }
-
+  // ret = register_meta(c);
+  // if (ret) {
+  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+  //   return NULL;
+  // }
   ret = send_server_metadata_to_client(c);
   if (ret) {
     rdma_error("Failed to send server metadata to the client, ret = %d \n",
@@ -406,6 +405,12 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
   ret = setup_client_resources(requested_clients[i]);
   if (ret) {
     rdma_error("Failed to setup client resources, ret = %d \n", ret);
+    return;
+  }
+
+  ret = register_meta(requested_clients[i]);
+  if (ret) {
+    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return;
   }
 
