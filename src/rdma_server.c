@@ -356,17 +356,18 @@ void *handle_client(void *arg) {
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
-  // ret = setup_client_resources(c);
-  // if (ret) {
-  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
-  //   return NULL;
-  // }
+  ret = setup_client_resources(c);
+  if (ret) {
+    rdma_error("Failed to setup client resources, ret = %d \n", ret);
+    return NULL;
+  }
 
-  // ret = register_meta(c);
-  // if (ret) {
-  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-  //   return NULL;
-  // }
+  ret = register_meta(c);
+  if (ret) {
+    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+    return NULL;
+  }
+
   ret = send_server_metadata_to_client(c);
   if (ret) {
     rdma_error("Failed to send server metadata to the client, ret = %d \n",
@@ -400,18 +401,18 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
     }
   }
 
-  ret = setup_client_resources(requested_clients[i]);
-  if (ret) {
-
-    rdma_error("Failed to setup client resources, ret = %d \n", ret);
-    return;
-  }
-
-  ret = register_meta(requested_clients[i]);
-  if (ret) {
-    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-    return;
-  }
+  // ret = setup_client_resources(requested_clients[i]);
+  // if (ret) {
+  //
+  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
+  //   return;
+  // }
+  //
+  // ret = register_meta(requested_clients[i]);
+  // if (ret) {
+  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+  //   return;
+  // }
 
   // struct sockaddr_in remote_sockaddr;
   memset(&requested_clients[i]->conn_param, 0,
