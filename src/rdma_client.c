@@ -509,11 +509,11 @@ int main(int argc, char **argv) {
     return ret;
   }
 
-  // ret = client_xchange_metadata_with_server();
-  // if (ret) {
-  //   rdma_error("Failed to setup client connection , ret = %d \n", ret);
-  //   return ret;
-  // }
+  ret = client_xchange_metadata_with_server();
+  if (ret) {
+    rdma_error("Failed to setup client connection , ret = %d \n", ret);
+    return ret;
+  }
 
   // ret = client_remote_memory_ops();
   // if (ret) {
