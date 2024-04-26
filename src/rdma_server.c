@@ -88,21 +88,6 @@ static int setup_client_resources(client *c) {
     return -errno;
   }
 
-  bzero(&c->QP, sizeof c->QP);
-  c->QP.cap.max_recv_sge = MAX_SGE;
-  c->QP.cap.max_recv_wr = MAX_WR;
-  c->QP.cap.max_send_sge = MAX_SGE;
-  c->QP.cap.max_send_wr = MAX_WR;
-  c->QP.qp_type = IBV_QPT_RC;
-  c->QP.recv_cq = c->CQ;
-  c->QP.send_cq = c->CQ;
-  ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
-  if (ret) {
-    rdma_error("++QP(error) errno: %d\n", -errno);
-    return -errno;
-  }
-
-  debug("++QP %p\n", c->cm_event_id->qp);
   return ret;
 }
 
@@ -237,6 +222,26 @@ static int register_meta(client *c) {
 //   }
 //   return str;
 // }
+//
+
+static int createQueuePairs(client *c) {
+  int ret = -1;
+  bzero(&c->QP, sizeof c->QP);
+  c->QP.cap.max_recv_sge = MAX_SGE;
+  c->QP.cap.max_recv_wr = MAX_WR;
+  c->QP.cap.max_send_sge = MAX_SGE;
+  c->QP.cap.max_send_wr = MAX_WR;
+  c->QP.qp_type = IBV_QPT_RC;
+  c->QP.recv_cq = c->CQ;
+  c->QP.send_cq = c->CQ;
+  ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
+  if (ret) {
+    rdma_error("++QP(error) errno: %d\n", -errno);
+    return -errno;
+  }
+
+  debug("++QP %p\n", c->cm_event_id->qp);
+}
 
 static int send_server_metadata_to_client(client *c) {
   struct ibv_wc wc;
@@ -356,11 +361,17 @@ void *handle_client(void *arg) {
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
-  ret = setup_client_resources(c);
+  ret = createQueuePairs(c);
   if (ret) {
     rdma_error("Failed to setup client resources, ret = %d \n", ret);
     return NULL;
   }
+
+  // ret = setup_client_resources(c);
+  // if (ret) {
+  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
+  //   return NULL;
+  // }
 
   ret = register_meta(c);
   if (ret) {
@@ -401,12 +412,13 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
     }
   }
 
-  // ret = setup_client_resources(requested_clients[i]);
-  // if (ret) {
-  //
-  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
-  //   return;
-  // }
+  ret = setup_client_resources(requested_clients[i]);
+  if (ret) {
+
+    rdma_error("Failed to setup client resources, ret = %d \n", ret);
+    return;
+  }
+
   //
   // ret = register_meta(requested_clients[i]);
   // if (ret) {
