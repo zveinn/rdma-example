@@ -368,10 +368,10 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
   int i;
   for (i = 0; i < 10000; i++) {
     if (requested_clients[i] == 0) {
+      printf("PLACING CLIENT IN INDEX %d \n", i);
       requested_clients[i] = malloc(sizeof(client));
       requested_clients[i]->index = i;
       requested_clients[i]->cm_event_id = event->id;
-      requested_clients[i]->cm_event = event;
       break;
     }
   }
