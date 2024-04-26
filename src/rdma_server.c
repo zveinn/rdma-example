@@ -88,7 +88,7 @@ static int setup_client_resources(client *c) {
   c->QP.cap.max_recv_wr = MAX_WR;
   c->QP.cap.max_send_sge = MAX_SGE;
   c->QP.cap.max_send_wr = MAX_WR;
-  c->QP.qp_type = IBV_QPT_UD;
+  c->QP.qp_type = IBV_QPT_RC;
   c->QP.recv_cq = c->CQ;
   c->QP.send_cq = c->CQ;
   ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
@@ -371,7 +371,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   }
   debug("+EventChannel: %p\n", EventChannel);
 
-  ret = rdma_create_id(EventChannel, &ServerID, NULL, RDMA_PS_UDP);
+  ret = rdma_create_id(EventChannel, &ServerID, NULL, RDMA_PS_TCP);
   if (ret) {
     rdma_error("Creating server cm id failed with errno: %d ", -errno);
     return -errno;

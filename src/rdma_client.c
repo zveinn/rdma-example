@@ -46,7 +46,7 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
   /* rdma_cm_id is the connection identifier (like socket) which is used
    * to define an RDMA connection.
    */
-  ret = rdma_create_id(cm_event_channel, &cm_client_id, NULL, RDMA_PS_UDP);
+  ret = rdma_create_id(cm_event_channel, &cm_client_id, NULL, RDMA_PS_TCP);
   if (ret) {
     rdma_error("Creating cm id failed with errno: %d \n", -errno);
     return -errno;
@@ -148,7 +148,7 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
   qp_init_attr.cap.max_recv_wr = MAX_WR; /* Maximum receive posting capacity */
   qp_init_attr.cap.max_send_sge = MAX_SGE; /* Maximum SGE per send posting */
   qp_init_attr.cap.max_send_wr = MAX_WR;   /* Maximum send posting capacity */
-  qp_init_attr.qp_type = IBV_QPT_UD; /* QP type, RC = Reliable connection */
+  qp_init_attr.qp_type = IBV_QPT_RC; /* QP type, RC = Reliable connection */
   /* We use same completion queue, but one can use different queues */
   qp_init_attr.recv_cq =
       client_cq; /* Where should I notify for receive completion operations */
