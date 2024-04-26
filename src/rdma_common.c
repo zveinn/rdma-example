@@ -127,6 +127,7 @@ int process_rdma_cm_event(struct rdma_event_channel *echannel,
     rdma_error("++EVENT(no event), errno: %d \n", -errno);
     return -errno;
   }
+  debug("++EVENT(%s) \n", rdma_event_str((*cm_event)->event));
 
   if (0 != (*cm_event)->status) {
     rdma_error("++EVENT(invalid status): %d\n", (*cm_event)->status);
@@ -148,7 +149,6 @@ int process_rdma_cm_event(struct rdma_event_channel *echannel,
   debug("++EVENT(ID) %d \n", (*cm_event)->id->port_num);
   debug("++EVENT(ID) %d \n", (*cm_event)->param.conn.qp_num);
   debug("++EVENT(ID) %d \n", (*cm_event)->param.ud.qp_num);
-  debug("++EVENT(%s) \n", rdma_event_str((*cm_event)->event));
   return ret;
 }
 
