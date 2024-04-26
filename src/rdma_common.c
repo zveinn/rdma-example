@@ -109,10 +109,6 @@ int process_rdma_cm_event(struct rdma_event_channel *echannel,
     return ret;
   }
 
-  debug("++EVENT(ID) %p \n", (*cm_event)->id->event->id);
-  debug("++EVENT(ID) %p \n", (*cm_event)->id);
-  debug("++EVENT(ID) %d \n", (*cm_event)->id->port_num);
-
   if ((*cm_event)->event != expected_event) {
     rdma_error("++EVENT(invalid type): %s [ expecting: %s ]",
                rdma_event_str((*cm_event)->event),
@@ -121,6 +117,9 @@ int process_rdma_cm_event(struct rdma_event_channel *echannel,
     return -1;
   }
 
+  // debug("++EVENT(ID) %p \n", (*cm_event)->id->event->id);
+  debug("++EVENT(ID) %p \n", (*cm_event)->id);
+  debug("++EVENT(ID) %d \n", (*cm_event)->id->port_num);
   debug("++EVENT(%s) \n", rdma_event_str((*cm_event)->event));
   return ret;
 }
