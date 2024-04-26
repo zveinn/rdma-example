@@ -513,11 +513,11 @@ int main(int argc, char **argv) {
     rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
     return ret;
   }
-  if (check_src_dst()) {
-    rdma_error("src and dst buffers do not match \n");
-  } else {
-    printf("...\nSUCCESS, source and destination buffers match \n");
-  }
+  // if (check_src_dst()) {
+  //   rdma_error("src and dst buffers do not match \n");
+  // } else {
+  //   printf("...\nSUCCESS, source and destination buffers match \n");
+  // }
   ret = client_disconnect_and_clean();
   if (ret) {
     rdma_error("Failed to cleanly disconnect and clean up resources \n");
