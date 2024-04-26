@@ -176,7 +176,7 @@ static int accept_client_connection(client *c) {
   printf("RCV_WR %p \n", &c->RCV_WR);
   printf("BAD-- %p \n", c->BAD_RCV_WR);
   printf("B1 %p \n", &c->B1);
-  printf("B2 %p \n", &c->B2);
+  printf("B2 %p \n", &c->Server_B2);
   printf("B3 %p \n", &c->B3);
   printf("B4 %p \n", &c->B4);
 
