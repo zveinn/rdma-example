@@ -367,10 +367,10 @@ void *handle_client(void *arg) {
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
-  ret = register_meta(c);
-  if (ret) {
-    return NULL;
-  }
+  // ret = register_meta(c);
+  // if (ret) {
+  //   return NULL;
+  // }
 
   ret = send_server_metadata_to_client(c);
   if (ret) {
@@ -412,11 +412,11 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
   }
 
   //
-  // ret = register_meta(requested_clients[i]);
-  // if (ret) {
-  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-  //   return;
-  // }
+  ret = register_meta(requested_clients[i]);
+  if (ret) {
+    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
+    return;
+  }
 
   // struct sockaddr_in remote_sockaddr;
   memset(&requested_clients[i]->conn_param, 0,
