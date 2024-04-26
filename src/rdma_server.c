@@ -173,13 +173,6 @@ static int accept_client_connection(client *c) {
   printf("B3 %p \n", &c->B3);
   printf("B4 %p \n", &c->B4);
 
-  struct ibv_wc wc;
-  ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  if (ret != 1) {
-    rdma_error("Failed to receive , ret = %d \n", ret);
-    return ret;
-  }
-
   return ret;
 }
 
@@ -225,6 +218,11 @@ static int postConnectReceive(client *c) {
 static int send_server_metadata_to_client(client *c) {
   struct ibv_wc wc;
   int ret = -1;
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("Failed to receive , ret = %d \n", ret);
+    return ret;
+  }
 
   printf("???...\n");
   show_rdma_buffer_attr(&c->B1);
