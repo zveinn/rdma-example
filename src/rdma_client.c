@@ -210,6 +210,7 @@ static int client_connect_to_server() {
     rdma_error("Failed to connect to remote host , errno: %d\n", -errno);
     return -errno;
   }
+  // sleep(10);
   debug("waiting for cm event: RDMA_CM_EVENT_ESTABLISHED\n");
   ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ESTABLISHED,
                               &cm_event);
