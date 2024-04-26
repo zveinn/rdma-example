@@ -147,7 +147,6 @@ static int accept_client_connection(client *c) {
     return -errno;
   }
   debug("++ESTABLISHED(received!) \n");
-  debug("++EVENT(ID) %p \n", cm_event->id);
 
   ret = rdma_ack_cm_event(cm_event);
   if (ret) {
