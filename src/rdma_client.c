@@ -45,7 +45,7 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
   /* rdma_cm_id is the connection identifier (like socket) which is used
    * to define an RDMA connection.
    */
-  ret = rdma_create_id(cm_event_channel, &cm_client_id, NULL, RDMA_PS_TCP);
+  ret = rdma_create_id(cm_event_channel, &cm_client_id, NULL, RDMA_PS_UDP);
   if (ret) {
     rdma_error("Creating cm id failed with errno: %d \n", -errno);
     return -errno;
