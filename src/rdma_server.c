@@ -138,7 +138,6 @@ static int accept_client_connection(client *c) {
   ret = rdma_accept(c->cm_event_id, &conn_param);
   if (ret) {
     rdma_error("++ACCEPT(error), errno: %d \n", -errno);
-
     return -errno;
   }
 
@@ -391,7 +390,7 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
     rdma_error("++ACCEPT(error), errno: %d \n", -errno);
   }
 }
-static void acceptConnection(struct rdma_cm_event *event) {
+static void connectionEstablished(struct rdma_cm_event *event) {
   int i;
   for (i = 0; i < 10000; i++) {
     if (requested_clients[i] != 0) {
@@ -464,7 +463,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       initializeConnectionRequest(event);
       break;
     case RDMA_CM_EVENT_ESTABLISHED:
-      acceptConnection(event);
+      connectionEstablished(event);
       break;
     case RDMA_CM_EVENT_DISCONNECTED:
       // acceptConnection(event);
