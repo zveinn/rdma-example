@@ -109,6 +109,8 @@ int process_rdma_cm_event(struct rdma_event_channel *echannel,
     return ret;
   }
 
+  debug("++EVENT(ID) %p \n", (*cm_event)->id);
+
   if ((*cm_event)->event != expected_event) {
     rdma_error("++EVENT(invalid type): %s [ expecting: %s ]",
                rdma_event_str((*cm_event)->event),
