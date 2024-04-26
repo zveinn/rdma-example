@@ -106,8 +106,6 @@ static int setup_client_resources(client *c) {
   return ret;
 }
 
-static int registerLocalMetaBuffer(client *c) { return NULL; }
-
 static int registerServerMetadataBuffer(client *c) {
   int ret = -1;
 
@@ -145,7 +143,7 @@ static int accept_client_connection(client *c) {
   struct sockaddr_in remote_sockaddr;
   int ret = -1;
 
-  ret = registerLocalMetaBuffer(c);
+  ret = registerServerMetadataBuffer(c);
   if (ret) {
     return ret;
   }
