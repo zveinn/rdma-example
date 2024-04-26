@@ -262,19 +262,21 @@ static int client_xchange_metadata_with_server() {
   client_send_sge.addr = (uint64_t)client_metadata_mr->addr;
   client_send_sge.length = (uint32_t)client_metadata_mr->length;
   client_send_sge.lkey = client_metadata_mr->lkey;
+  printf("D3 \n");
   /* now we link to the send work request */
   bzero(&client_send_wr, sizeof(client_send_wr));
   client_send_wr.sg_list = &client_send_sge;
   client_send_wr.num_sge = 1;
   client_send_wr.opcode = IBV_WR_SEND;
   client_send_wr.send_flags = IBV_SEND_SIGNALED;
+  printf("D4 \n");
   /* Now we post it */
   ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
   if (ret) {
     rdma_error("Failed to send client metadata, errno: %d \n", -errno);
     return -errno;
   }
-  printf("D3 \n");
+  printf("D5 \n");
 
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
