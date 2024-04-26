@@ -62,10 +62,10 @@ static int setup_client_resources(client *c) {
 
   c->PD = ibv_alloc_pd(c->cm_event_id->verbs);
   if (!c->PD) {
-    rdma_error("Failed to allocate a protection domain errno: %d\n", -errno);
+    rdma_error("++PD errno: %d\n", -errno);
     return -errno;
   }
-  debug("++DP %p \n", c->PD);
+  debug("++PD %p \n", c->PD);
 
   c->completionChannel = ibv_create_comp_channel(c->cm_event_id->verbs);
   if (!c->completionChannel) {
@@ -237,7 +237,7 @@ static int createQueuePairs(client *c) {
   ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
   if (ret) {
     rdma_error("++QP(error) errno: %d\n", -errno);
-    return -errno;
+    return ret;
   }
 
   debug("++QP %p\n", c->cm_event_id->qp);
@@ -357,13 +357,12 @@ static int disconnect_and_cleanup(client *c) {
 void *handle_client(void *arg) {
   // void *handle_client(client *c) {
   printf("inside thread\n");
-  int ret;
+  int ret = -1;
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
   ret = createQueuePairs(c);
   if (ret) {
-    rdma_error("Failed to setup client resources, ret = %d \n", ret);
     return NULL;
   }
 
@@ -375,7 +374,6 @@ void *handle_client(void *arg) {
 
   ret = register_meta(c);
   if (ret) {
-    rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return NULL;
   }
 
@@ -414,8 +412,7 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
 
   ret = setup_client_resources(requested_clients[i]);
   if (ret) {
-
-    rdma_error("Failed to setup client resources, ret = %d \n", ret);
+    rdma_error("++RESOURCES, ret = %d \n", ret);
     return;
   }
 
