@@ -128,13 +128,6 @@ static int accept_client_connection(client *c) {
   }
   debug("++IBV_POST_REC \n");
 
-  struct ibv_wc wc;
-  ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  if (ret != 1) {
-    rdma_error("Failed to receive , ret = %d \n", ret);
-    return ret;
-  }
-
   memset(&conn_param, 0, sizeof(conn_param));
 
   conn_param.initiator_depth = 3;
@@ -179,6 +172,13 @@ static int accept_client_connection(client *c) {
   printf("B2 %p \n", &c->Server_B2);
   printf("B3 %p \n", &c->B3);
   printf("B4 %p \n", &c->B4);
+
+  struct ibv_wc wc;
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("Failed to receive , ret = %d \n", ret);
+    return ret;
+  }
 
   return ret;
 }
