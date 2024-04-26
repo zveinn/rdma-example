@@ -382,6 +382,10 @@ void *handle_client(void *arg) {
   //   rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
   //   return NULL;
   // }
+  //
+  while (1) {
+    sleep(1);
+  };
 
   return NULL;
 }
