@@ -225,7 +225,7 @@ static int register_meta(client *c) {
 //
 
 static int createQueuePairs(client *c) {
-  int ret = -1;
+  int ret;
   bzero(&c->QP, sizeof c->QP);
   c->QP.cap.max_recv_sge = MAX_SGE;
   c->QP.cap.max_recv_wr = MAX_WR;
