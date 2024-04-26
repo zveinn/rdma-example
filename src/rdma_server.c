@@ -150,33 +150,32 @@ static int accept_client_connection(client *c) {
   struct sockaddr_in remote_sockaddr;
   int ret = -1;
 
-  ret = registerServerMetadataBuffer(c);
-  if (ret) {
-    return ret;
-  }
-  //
-  // c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr,
-  // sizeof(c->metaAttr),
-  //                                  (IBV_ACCESS_LOCAL_WRITE));
-  // if (!c->metaMR) {
-  //   rdma_error("++CLIENT_MR(error)\n");
-  //   return -ENOMEM;
-  // }
-  //
-  // c->SGE.addr = (uint64_t)c->metaMR->addr;
-  // c->SGE.length = c->metaMR->length;
-  // c->SGE.lkey = c->metaMR->lkey;
-  //
-  // bzero(&c->RCV_WR, sizeof(c->RCV_WR));
-  // c->RCV_WR.sg_list = &c->SGE;
-  // c->RCV_WR.num_sge = 1;
-  //
-  // ret = ibv_post_recv(c->cm_event_id->qp, &c->RCV_WR, &c->BAD_RCV_WR);
+  // ret = registerServerMetadataBuffer(c);
   // if (ret) {
-  //   rdma_error("++IBV_POST_REC(ERR), errno: %d \n", ret);
   //   return ret;
   // }
-  // debug("++IBV_POST_REC \n");
+  //
+  c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr, sizeof(c->metaAttr),
+                                   (IBV_ACCESS_LOCAL_WRITE));
+  if (!c->metaMR) {
+    rdma_error("++CLIENT_MR(error)\n");
+    return -ENOMEM;
+  }
+
+  c->SGE.addr = (uint64_t)c->metaMR->addr;
+  c->SGE.length = c->metaMR->length;
+  c->SGE.lkey = c->metaMR->lkey;
+
+  bzero(&c->RCV_WR, sizeof(c->RCV_WR));
+  c->RCV_WR.sg_list = &c->SGE;
+  c->RCV_WR.num_sge = 1;
+
+  ret = ibv_post_recv(c->cm_event_id->qp, &c->RCV_WR, &c->BAD_RCV_WR);
+  if (ret) {
+    rdma_error("++IBV_POST_REC(ERR), errno: %d \n", ret);
+    return ret;
+  }
+  debug("++IBV_POST_REC \n");
 
   // memset(&conn_param, 0, sizeof(conn_param));
   //
