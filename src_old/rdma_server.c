@@ -234,29 +234,30 @@ static int send_server_metadata_to_client() {
   printf("The client has requested buffer length of : %u bytes \n",
          client_metadata_attr.length);
   //
-  // /* We need to setup requested memory buffer. This is where the client will
-  //  * do RDMA READs and WRITEs. */
-  // server_buffer_mr =
-  //     rdma_buffer_alloc(pd /* which protection domain */,
-  //                       client_metadata_attr.length /* what size to allocate
-  //                       */, (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ
-  //                       |
-  //                        IBV_ACCESS_REMOTE_WRITE) /* access permissions */);
-  // if (!server_buffer_mr) {
-  //   rdma_error("Server failed to create a buffer \n");
-  //   /* we assume that it is due to out of memory error */
-  //   return -ENOMEM;
-  // }
-
+  /* We need to setup requested memory buffer. This is where the client will
+   * do RDMA READs and WRITEs. */
   server_buffer_mr =
-      rdma_buffer_register(pd, dst, 4,
-                           (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
-                            IBV_ACCESS_REMOTE_WRITE));
-
+      rdma_buffer_alloc(pd /* which protection domain */,
+                        client_metadata_attr.length /* what size to allocate
+                                                     */
+                        ,
+                        (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+                         IBV_ACCESS_REMOTE_WRITE) /* access permissions */);
   if (!server_buffer_mr) {
     rdma_error("Server failed to create a buffer \n");
+    /* we assume that it is due to out of memory error */
     return -ENOMEM;
   }
+
+  // server_buffer_mr =
+  //     rdma_buffer_register(pd, dst, 4,
+  //                          (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+  //                           IBV_ACCESS_REMOTE_WRITE));
+  //
+  // if (!server_buffer_mr) {
+  //   rdma_error("Server failed to create a buffer \n");
+  //   return -ENOMEM;
+  // }
 
   /* This buffer is used to transmit information about the above
    * buffer to the client. So this contains the metadata about the server

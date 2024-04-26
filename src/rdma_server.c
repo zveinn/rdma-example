@@ -18,7 +18,10 @@ typedef struct {
   struct ibv_cq *CQ;
   struct ibv_qp_init_attr QP;
 
-  struct ibv_mr *MR;
+  // META???
+  struct ibv_mr *metaMR;
+  struct rdma_buffer_attr metaAttr;
+
   struct ibv_mr *serverMR;
   struct ibv_mr *serverMetaMR;
   // struct ibv_mr *SERVER_MR;
@@ -32,7 +35,6 @@ typedef struct {
   struct ibv_send_wr *Server_BAD_RCV_WR;
   // struct ibv_recv_wr RCV_WR;
 
-  struct rdma_buffer_attr B1;
   struct rdma_buffer_attr Server_B2;
   struct rdma_buffer_attr B3;
   struct rdma_buffer_attr B4;
@@ -104,32 +106,72 @@ static int setup_client_resources(client *c) {
   return ret;
 }
 
-static int accept_client_connection(client *c) {
-  struct rdma_conn_param conn_param;
-  struct sockaddr_in remote_sockaddr;
+static int registerLocalMetaBuffer(client *c) { return NULL; }
+
+static int registerServerMetadataBuffer(client *c) {
   int ret = -1;
 
-  c->MR = rdma_buffer_register(c->PD, &c->B1, sizeof(c->B1),
-                               (IBV_ACCESS_LOCAL_WRITE));
-  if (!c->MR) {
+  printf("++LOCAL META\n");
+  c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr, sizeof(c->metaAttr),
+                                   (IBV_ACCESS_LOCAL_WRITE));
+  if (!c->metaMR) {
     rdma_error("++CLIENT_MR(error)\n");
     return -ENOMEM;
   }
 
-  c->SGE.addr = (uint64_t)c->MR->addr;
-  c->SGE.length = c->MR->length;
-  c->SGE.lkey = c->MR->lkey;
+  struct ibv_sge SGE;
+  struct ibv_recv_wr RCV_WR;
+  struct ibv_recv_wr *BAD_RCV_WR;
 
-  bzero(&c->RCV_WR, sizeof(c->RCV_WR));
-  c->RCV_WR.sg_list = &c->SGE;
-  c->RCV_WR.num_sge = 1;
+  SGE.addr = (uint64_t)c->metaMR->addr;
+  SGE.length = c->metaMR->length;
+  SGE.lkey = c->metaMR->lkey;
 
-  ret = ibv_post_recv(c->cm_event_id->qp, &c->RCV_WR, &c->BAD_RCV_WR);
+  bzero(&RCV_WR, sizeof(RCV_WR));
+  RCV_WR.sg_list = &SGE;
+  RCV_WR.num_sge = 1;
+  ret = ibv_post_recv(c->cm_event_id->qp, &RCV_WR, &BAD_RCV_WR);
   if (ret) {
     rdma_error("++IBV_POST_REC(ERR), errno: %d \n", ret);
     return ret;
   }
   debug("++IBV_POST_REC \n");
+
+  return NULL;
+}
+
+static int accept_client_connection(client *c) {
+  struct rdma_conn_param conn_param;
+  struct sockaddr_in remote_sockaddr;
+  int ret = -1;
+
+  ret = registerLocalMetaBuffer(c);
+  if (ret) {
+    return ret;
+  }
+  //
+  // c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr,
+  // sizeof(c->metaAttr),
+  //                                  (IBV_ACCESS_LOCAL_WRITE));
+  // if (!c->metaMR) {
+  //   rdma_error("++CLIENT_MR(error)\n");
+  //   return -ENOMEM;
+  // }
+  //
+  // c->SGE.addr = (uint64_t)c->metaMR->addr;
+  // c->SGE.length = c->metaMR->length;
+  // c->SGE.lkey = c->metaMR->lkey;
+  //
+  // bzero(&c->RCV_WR, sizeof(c->RCV_WR));
+  // c->RCV_WR.sg_list = &c->SGE;
+  // c->RCV_WR.num_sge = 1;
+  //
+  // ret = ibv_post_recv(c->cm_event_id->qp, &c->RCV_WR, &c->BAD_RCV_WR);
+  // if (ret) {
+  //   rdma_error("++IBV_POST_REC(ERR), errno: %d \n", ret);
+  //   return ret;
+  // }
+  // debug("++IBV_POST_REC \n");
 
   memset(&conn_param, 0, sizeof(conn_param));
 
@@ -167,11 +209,11 @@ static int accept_client_connection(client *c) {
   printf("PD %p \n", c->PD);
   printf("CQ %p \n", c->CQ);
   printf("QP %p \n", &c->QP);
-  printf("MR %p \n", c->MR);
+  printf("MR %p \n", c->metaMR);
   printf("SGE %p \n", &c->SGE);
   printf("RCV_WR %p \n", &c->RCV_WR);
   printf("BAD-- %p \n", c->BAD_RCV_WR);
-  printf("B1 %p \n", &c->B1);
+  printf("B1 %p \n", &c->metaAttr);
   printf("B2 %p \n", &c->Server_B2);
   printf("B3 %p \n", &c->B3);
   printf("B4 %p \n", &c->B4);
@@ -191,33 +233,6 @@ char *convert_to_string(uint32_t *data, uint32_t length) {
   return str;
 }
 
-static int postConnectReceive(client *c) {
-  struct ibv_wc wc;
-  int ret = -1;
-  printf("WAITING FOR WORK ....%d\n", 1);
-  ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  if (ret != 1) {
-    rdma_error("Failed to receive , ret = %d \n", ret);
-    return ret;
-  }
-
-  printf("RECEIVED WORK! %d\n", 1);
-  show_rdma_buffer_attr(&c->B1);
-  char *string = convert_to_string(&c->B1.stag.local_stag, c->B1.length);
-  // char *string2 = convert_to_string(&c->B1.stag.remote_stag, c->B1.length);
-  // char *string3 = convert_to_string(&c->B1.address, c->B1.length);
-  printf("BUFRR: %s\n", string);
-
-  ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  if (ret != 1) {
-    rdma_error("Failed to receive , ret = %d \n", ret);
-    return ret;
-  }
-
-  printf("RECEIVED WORK 2222 ! %d\n", 1);
-  return 1;
-}
-
 static int send_server_metadata_to_client(client *c) {
   struct ibv_wc wc;
   int ret = -1;
@@ -228,8 +243,8 @@ static int send_server_metadata_to_client(client *c) {
   }
 
   printf("???...\n");
-  show_rdma_buffer_attr(&c->B1);
-  printf("?? : %u bytes \n", c->B1.length);
+  show_rdma_buffer_attr(&c->metaAttr);
+  printf("?? : %u bytes \n", c->metaAttr.length);
 
   c->dataBuffer = calloc(4, 1);
   c->serverMR =
@@ -315,7 +330,7 @@ static int disconnect_and_cleanup(client *c) {
     rdma_error("Failed to destroy completion channel cleanly, %d \n", -errno);
   }
 
-  rdma_buffer_deregister(c->MR);
+  rdma_buffer_deregister(c->metaMR);
   rdma_buffer_free(c->serverMR);
   rdma_buffer_deregister(c->serverMetaMR);
 
@@ -354,11 +369,11 @@ void *handle_client(void *arg) {
                ret);
     return NULL;
   }
-  ret = disconnect_and_cleanup(c);
-  if (ret) {
-    rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
-    return NULL;
-  }
+  // ret = disconnect_and_cleanup(c);
+  // if (ret) {
+  //   rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
+  //   return NULL;
+  // }
 
   return NULL;
 }
@@ -480,6 +495,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       rdma_error("ACK event errno: %d \n", -errno);
       continue;
     }
+    sleep(2);
   }
   //
   // while (1) {
