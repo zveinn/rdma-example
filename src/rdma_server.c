@@ -398,10 +398,10 @@ static void acceptConnection(struct rdma_cm_event *event) {
       if (requested_clients[i]->cm_event_id == event->id) {
         printf("FOUND IT POINTER!\n");
       }
-      if (requested_clients[i]->cm_event->param.conn.qp_num ==
-          event->param.conn.qp_num) {
-        printf("FOUND IT!\n");
-      }
+      // if (requested_clients[i]->cm_event->param.conn.qp_num ==
+      //     event->param.conn.qp_num) {
+      //   printf("FOUND IT!\n");
+      // }
     }
   }
 
@@ -460,6 +460,9 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       acceptConnection(event);
       break;
     case RDMA_CM_EVENT_DISCONNECTED:
+      // acceptConnection(event);
+      break;
+    case RDMA_CM_EVENT_REJECTED:
       // acceptConnection(event);
       break;
     default:
