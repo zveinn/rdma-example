@@ -229,8 +229,9 @@ static int send_server_metadata_to_client(client *c) {
   show_rdma_buffer_attr(&c->B1);
   printf("?? : %u bytes \n", c->B1.length);
 
+  c->dataBuffer = calloc(4, 1);
   c->serverMR =
-      rdma_buffer_register(c->PD, c->dataBuffer, 1024,
+      rdma_buffer_register(c->PD, c->dataBuffer, 4,
                            (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
                             IBV_ACCESS_REMOTE_WRITE));
 
