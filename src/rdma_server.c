@@ -348,8 +348,7 @@ void *handle_client(void *arg) {
   printf("inside thread\n");
   int ret;
   client *c = (client *)arg;
-  printf("client: %p -- event: %p -- id: %p \n", c, c->cm_event,
-         c->cm_event->id);
+  printf("client: id: %p \n", c->cm_event->id);
 
   ret = setup_client_resources(c);
   if (ret) {
