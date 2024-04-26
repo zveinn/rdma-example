@@ -392,7 +392,7 @@ static void acceptConnection(struct rdma_cm_event *event) {
   int i;
   for (i = 0; i < 10000; i++) {
     if (requested_clients[i] != 0) {
-      printf("COMPARE: %d == %d",
+      printf("COMPARE: %d == %d\n",
              requested_clients[i]->cm_event->param.conn.qp_num,
              event->param.conn.qp_num);
 
