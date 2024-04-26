@@ -293,7 +293,8 @@ static int client_xchange_metadata_with_server() {
 }
 
 static int writeSource(char *data) {
-  src = data;
+  src[0] = 120;
+  src[1] = 120;
   //
   struct ibv_wc wc;
   int ret = -1;
