@@ -190,7 +190,8 @@ static int client_pre_post_recv_buffer() {
     rdma_error("Failed to pre-post the receive buffer, errno: %d \n", ret);
     return ret;
   }
-  debug("Receive buffer pre-posting is successful \n");
+  debug("DONE POSTING BUFFER\n");
+  debug("DONE POSTING BUFFER\n");
   return 0;
 }
 
@@ -253,6 +254,7 @@ static int client_xchange_metadata_with_server() {
                ret);
     return ret;
   }
+
   /* now we fill up SGE */
   client_send_sge.addr = (uint64_t)client_metadata_mr->addr;
   client_send_sge.length = (uint32_t)client_metadata_mr->length;
@@ -269,16 +271,17 @@ static int client_xchange_metadata_with_server() {
     rdma_error("Failed to send client metadata, errno: %d \n", -errno);
     return -errno;
   }
+
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
    * its buffer information */
-  ret = process_work_completion_events(io_completion_channel, wc, 2);
-  if (ret != 2) {
-    rdma_error("We failed to get 2 work completions , ret = %d \n", ret);
-    return ret;
-  }
+  // ret = process_work_completion_events(io_completion_channel, wc, 2);
+  // if (ret != 2) {
+  //   rdma_error("We failed to get 2 work completions , ret = %d \n", ret);
+  //   return ret;
+  // }
   debug("Server sent us its buffer location and credentials, showing \n");
-  show_rdma_buffer_attr(&server_metadata_attr);
+  // show_rdma_buffer_attr(&server_metadata_attr);
   return 0;
 }
 
@@ -343,17 +346,18 @@ static int client_remote_memory_ops() {
   /* Now we post it */
   ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
   if (ret) {
-    rdma_error("Failed to read client dst buffer from the master, errno: %d \n",
-               -errno);
+    rdma_error("Failed to read client dst buffer from the master, errno: %d\n ",
+               errno);
     return -errno;
   }
+
   /* at this point we are expecting 1 work completion for the write */
-  ret = process_work_completion_events(io_completion_channel, &wc, 1);
-  if (ret != 1) {
-    rdma_error("We failed to get 1 work completions , ret = %d \n", ret);
-    return ret;
-  }
-  debug("Client side READ is complete \n");
+  // ret = process_work_completion_events(io_completion_channel, &wc, 1);
+  // if (ret != 1) {
+  //   rdma_error("We failed to get 1 work completions , ret = %d \n", ret);
+  //   return ret;
+  // }
+  // debug("Client side READ is complete \n");
   return 0;
 }
 
@@ -497,11 +501,13 @@ int main(int argc, char **argv) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
+
   ret = client_xchange_metadata_with_server();
   if (ret) {
     rdma_error("Failed to setup client connection , ret = %d \n", ret);
     return ret;
   }
+
   ret = client_remote_memory_ops();
   if (ret) {
     rdma_error("Failed to finish remote memory ops, ret = %d \n", ret);
@@ -512,11 +518,13 @@ int main(int argc, char **argv) {
   } else {
     printf("...\nSUCCESS, source and destination buffers match \n");
   }
-  printf("SS: %s", src);
-  printf("SS: %s", dst);
   ret = client_disconnect_and_clean();
   if (ret) {
     rdma_error("Failed to cleanly disconnect and clean up resources \n");
   }
+
+  while (1) {
+    sleep(2);
+  };
   return ret;
 }
