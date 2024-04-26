@@ -135,17 +135,17 @@ static int registerServerMetadataBuffer(client *c) {
   }
   debug("++IBV_POST_REC \n");
 
-  // struct ibv_wc wc;
-  // ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  // if (ret != 1) {
-  //   rdma_error("Failed to receive , ret = %d \n", ret);
-  //   return ret;
-  // }
+  struct ibv_wc wc;
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("Failed to receive , ret = %d \n", ret);
+    return ret;
+  }
 
   return NULL;
 }
 
-static int accept_client_connection(client *c) {
+static int register_meta(client *c) {
   struct rdma_conn_param conn_param;
   struct sockaddr_in remote_sockaddr;
   int ret = -1;
@@ -359,13 +359,13 @@ void *handle_client(void *arg) {
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
-  ret = setup_client_resources(c);
-  if (ret) {
-    rdma_error("Failed to setup client resources, ret = %d \n", ret);
-    return NULL;
-  }
+  // ret = setup_client_resources(c);
+  // if (ret) {
+  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
+  //   return NULL;
+  // }
 
-  ret = accept_client_connection(c);
+  ret = register_meta(c);
   if (ret) {
     rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return NULL;
@@ -398,6 +398,11 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
       requested_clients[i]->cm_event_id = event->id;
       break;
     }
+  }
+  ret = setup_client_resources(requested_clients[i]);
+  if (ret) {
+    rdma_error("Failed to setup client resources, ret = %d \n", ret);
+    return;
   }
 
   // struct sockaddr_in remote_sockaddr;
