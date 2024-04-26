@@ -57,6 +57,26 @@ static int disconnectServer() {
   return ret;
 }
 
+static int createQueuePairs(client *c) {
+  int ret = -1;
+  bzero(&c->QP, sizeof c->QP);
+  c->QP.cap.max_recv_sge = MAX_SGE;
+  c->QP.cap.max_recv_wr = MAX_WR;
+  c->QP.cap.max_send_sge = MAX_SGE;
+  c->QP.cap.max_send_wr = MAX_WR;
+  c->QP.qp_type = IBV_QPT_RC;
+  c->QP.recv_cq = c->CQ;
+  c->QP.send_cq = c->CQ;
+  ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
+  if (ret) {
+    rdma_error("++QP(error) errno: %d\n", -errno);
+    return ret;
+  }
+
+  debug("++QP %p\n", c->cm_event_id->qp);
+  return ret;
+}
+
 static int setup_client_resources(client *c) {
   int ret = -1;
 
@@ -87,6 +107,11 @@ static int setup_client_resources(client *c) {
     rdma_error("++NOTIFY(error) errno: %d \n", -errno);
     return -errno;
   }
+
+  // ret = createQueuePairs(c);
+  // if (ret) {
+  //   return NULL;
+  // }
 
   return ret;
 }
@@ -224,25 +249,6 @@ static int register_meta(client *c) {
 // }
 //
 
-static int createQueuePairs(client *c) {
-  int ret;
-  bzero(&c->QP, sizeof c->QP);
-  c->QP.cap.max_recv_sge = MAX_SGE;
-  c->QP.cap.max_recv_wr = MAX_WR;
-  c->QP.cap.max_send_sge = MAX_SGE;
-  c->QP.cap.max_send_wr = MAX_WR;
-  c->QP.qp_type = IBV_QPT_RC;
-  c->QP.recv_cq = c->CQ;
-  c->QP.send_cq = c->CQ;
-  ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
-  if (ret) {
-    rdma_error("++QP(error) errno: %d\n", -errno);
-    return ret;
-  }
-
-  debug("++QP %p\n", c->cm_event_id->qp);
-}
-
 static int send_server_metadata_to_client(client *c) {
   struct ibv_wc wc;
   int ret = -1;
@@ -361,16 +367,15 @@ void *handle_client(void *arg) {
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
-  ret = createQueuePairs(c);
-  if (ret) {
-    return NULL;
-  }
-
   // ret = setup_client_resources(c);
   // if (ret) {
   //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
   //   return NULL;
   // }
+  ret = createQueuePairs(c);
+  if (ret) {
+    return NULL;
+  }
 
   ret = register_meta(c);
   if (ret) {
