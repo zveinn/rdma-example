@@ -111,8 +111,8 @@ int get_rdma_cm_event(struct rdma_event_channel *echannel,
   // debug("++EVENT(ID) %p \n", (*cm_event)->id->event->id);
   debug("++EVENT(ID) %p \n", (*cm_event)->id);
   debug("++EVENT(ID) %d \n", (*cm_event)->id->port_num);
-  debug("++EVENT(ID) %d \n", (*cm_event)->param.conn.qp_num);
   debug("++EVENT(ID) %d \n", (*cm_event)->param.ud.qp_num);
+  debug("++EVENT(ID) %d \n", (*cm_event)->param.conn.qp_num);
   debug("++EVENT(%s) \n", rdma_event_str((*cm_event)->event));
   return ret;
 }

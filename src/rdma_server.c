@@ -376,6 +376,7 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
 }
 static void acceptConnection(struct rdma_cm_event *event) {
 
+  int ret = -1;
   int i;
   for (i = 0; i < 10000; i++) {
     if (clients[i] == 0) {
@@ -384,6 +385,17 @@ static void acceptConnection(struct rdma_cm_event *event) {
       clients[i]->cm_event_id = event->id;
       break;
     }
+  }
+
+  struct rdma_conn_param conn_param;
+  struct sockaddr_in remote_sockaddr;
+  memset(&conn_param, 0, sizeof(conn_param));
+
+  conn_param.initiator_depth = 3;
+  conn_param.responder_resources = 3;
+  ret = rdma_accept(clients[i]->cm_event_id, &conn_param);
+  if (ret) {
+    rdma_error("++ACCEPT(error), errno: %d \n", -errno);
   }
 }
 
@@ -427,10 +439,12 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
     switch (event->event) {
     case RDMA_CM_EVENT_CONNECT_REQUEST:
       initializeConnectionRequest(event);
+      break;
     case RDMA_CM_EVENT_ESTABLISHED:
       acceptConnection(event);
+      break;
     default:
-      printf("Unknown event: %s", rdma_event_str(event->event));
+      printf("Unknown event: %s\n", rdma_event_str(event->event));
     }
     ret = rdma_ack_cm_event(event);
     if (ret) {
