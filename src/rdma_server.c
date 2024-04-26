@@ -487,6 +487,8 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       break;
     case RDMA_CM_EVENT_ESTABLISHED:
       connectionEstablished(event);
+      printf("...sleep\n");
+      sleep(2);
       break;
     case RDMA_CM_EVENT_DISCONNECTED:
       // acceptConnection(event);
@@ -503,8 +505,6 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       rdma_error("ACK event errno: %d \n", -errno);
       continue;
     }
-    printf("...sleep\n");
-    sleep(2);
   }
   //
   // while (1) {
