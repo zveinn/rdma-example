@@ -415,7 +415,7 @@ static void connectionEstablished(struct rdma_cm_event *event) {
       if (requested_clients[i]->cm_event_id == event->id) {
         printf("FOUND IT POINTER!\n");
         if (pthread_create(&thread, NULL, handle_client,
-                           &requested_clients[i]) != 0) {
+                           requested_clients[i]) != 0) {
           perror("++THREAD(failed)\n");
           exit(EXIT_FAILURE);
         }
