@@ -525,12 +525,12 @@ int main(int argc, char **argv) {
   // } else {
   //   printf("...\nSUCCESS, source and destination buffers match \n");
   // }
-  sleep(10);
-  ret = client_disconnect_and_clean();
-  if (ret) {
-    rdma_error("Failed to cleanly disconnect and clean up resources \n");
-  }
-
+  // sleep(10);
+  // ret = client_disconnect_and_clean();
+  // if (ret) {
+  //   rdma_error("Failed to cleanly disconnect and clean up resources \n");
+  // }
+  //
   while (1) {
     sleep(2);
   };
