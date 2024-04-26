@@ -396,6 +396,9 @@ static void acceptConnection(struct rdma_cm_event *event) {
              requested_clients[i]->cm_event->param.conn.qp_num,
              event->param.conn.qp_num);
 
+      if (&requested_clients[i]->cm_event_id == &event->id) {
+        printf("FOUND IT POINTER!\n");
+      }
       if (requested_clients[i]->cm_event->param.conn.qp_num ==
           event->param.conn.qp_num) {
         printf("FOUND IT!\n");
