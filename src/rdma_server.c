@@ -9,6 +9,8 @@ static struct rdma_event_channel *EventChannel = NULL;
 static struct rdma_cm_id *ServerID = NULL;
 
 typedef struct {
+  struct rdma_conn_param conn_param;
+
   struct rdma_cm_event *cm_event;
   struct rdma_cm_id *cm_event_id;
   struct ibv_comp_channel *completionChannel;
@@ -376,14 +378,15 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
     }
   }
 
-  struct rdma_conn_param conn_param;
-  struct sockaddr_in remote_sockaddr;
-  memset(&conn_param, 0, sizeof(conn_param));
+  // struct sockaddr_in remote_sockaddr;
+  memset(&requested_clients[i]->conn_param, 0,
+         sizeof(requested_clients[i]->conn_param));
 
-  conn_param.initiator_depth = 3;
-  conn_param.responder_resources = 3;
+  requested_clients[i]->conn_param.initiator_depth = 3;
+  requested_clients[i]->conn_param.responder_resources = 3;
   printf("CALLING ACCEPT \n");
-  ret = rdma_accept(requested_clients[i]->cm_event_id, &conn_param);
+  ret = rdma_accept(requested_clients[i]->cm_event_id,
+                    &requested_clients[i]->conn_param);
   if (ret) {
     rdma_error("++ACCEPT(error), errno: %d \n", -errno);
   }
@@ -439,7 +442,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   }
   debug("+BIND to ServerID: %p\n", ServerID);
 
-  ret = rdma_listen(ServerID, 8);
+  ret = rdma_listen(ServerID, 20);
   if (ret) {
     rdma_error("rdma_listen failed errno: %d ", -errno);
     return -errno;
@@ -451,6 +454,10 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   struct rdma_cm_event *event;
   while (1) {
     ret = get_rdma_cm_event(EventChannel, &event);
+    if (ret) {
+      rdma_error("GET event errno: %d \n", -errno);
+      continue;
+    }
 
     switch (event->event) {
     case RDMA_CM_EVENT_CONNECT_REQUEST:
@@ -471,8 +478,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
     }
     ret = rdma_ack_cm_event(event);
     if (ret) {
-      rdma_error(" event errno: %d \n", -errno);
-      // return -errno;
+      rdma_error("ACK event errno: %d \n", -errno);
       continue;
     }
   }
