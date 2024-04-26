@@ -292,6 +292,41 @@ static int client_xchange_metadata_with_server() {
   return 0;
 }
 
+static int writeSource(char *data) {
+  src = data;
+  //
+  struct ibv_wc wc;
+  int ret = -1;
+  /* Step 1: is to copy the local buffer into the remote buffer. We will
+   * reuse the previous variables. */
+  /* now we fill up SGE */
+  client_send_sge.addr = (uint64_t)client_src_mr->addr;
+  client_send_sge.length = (uint32_t)client_src_mr->length;
+  client_send_sge.lkey = client_src_mr->lkey;
+  /* now we link to the send work request */
+  bzero(&client_send_wr, sizeof(client_send_wr));
+  client_send_wr.sg_list = &client_send_sge;
+  client_send_wr.num_sge = 1;
+  client_send_wr.opcode = IBV_WR_RDMA_WRITE;
+  client_send_wr.send_flags = IBV_SEND_SIGNALED;
+  /* we have to tell server side info for RDMA */
+  client_send_wr.wr.rdma.rkey = server_metadata_attr.stag.remote_stag;
+  client_send_wr.wr.rdma.remote_addr = server_metadata_attr.address;
+  /* Now we post it */
+  ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
+  if (ret) {
+    rdma_error("Failed to write client src buffer, errno: %d \n", -errno);
+    return -errno;
+  }
+  /* at this point we are expecting 1 work completion for the write */
+  ret = process_work_completion_events(io_completion_channel, &wc, 1);
+  if (ret != 1) {
+    rdma_error("We failed to get 1 work completions , ret = %d \n", ret);
+    return ret;
+  }
+  debug("Client side WRITE is complete \n");
+  return 0;
+}
 /* This function does :
  * 1) Prepare memory buffers for RDMA operations
  * 1) RDMA write from src -> remote buffer
@@ -532,12 +567,16 @@ int main(int argc, char **argv) {
   // }
   //
   while (1) {
-    if (check_src_dst()) {
-      rdma_error("src and dst buffers do not match \n");
-    } else {
-      printf("...\nSUCCESS, source and destination buffers match \n");
+    ret = writeSource("11");
+    if (ret) {
+      printf("failed: %d\n", ret);
     }
-    sleep(2);
+    // if (check_src_dst()) {
+    //   rdma_error("src and dst buffers do not match \n");
+    // } else {
+    //   printf("...SUCCESS\n");
+    // }
+    sleep(1);
   };
   return ret;
 }
