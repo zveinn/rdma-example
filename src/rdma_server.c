@@ -402,6 +402,7 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
 
   ret = setup_client_resources(requested_clients[i]);
   if (ret) {
+
     rdma_error("Failed to setup client resources, ret = %d \n", ret);
     return;
   }
