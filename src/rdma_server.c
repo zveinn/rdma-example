@@ -173,36 +173,37 @@ static int accept_client_connection(client *c) {
   // }
   // debug("++IBV_POST_REC \n");
 
-  memset(&conn_param, 0, sizeof(conn_param));
+  // memset(&conn_param, 0, sizeof(conn_param));
+  //
+  // conn_param.initiator_depth = 3;
+  // conn_param.responder_resources = 3;
+  // ret = rdma_accept(c->cm_event_id, &conn_param);
+  // if (ret) {
+  //   rdma_error("++ACCEPT(error), errno: %d \n", -errno);
+  //   return -errno;
+  // }
+  //
+  // debug("++ESTABLISHED(waiting...) \n");
+  // struct rdma_cm_event *cm_event = NULL;
+  // ret =
+  //     process_rdma_cm_event(EventChannel, RDMA_CM_EVENT_ESTABLISHED,
+  //     &cm_event);
+  // if (ret) {
+  //   rdma_error("++ESTABLISHED(error), errnp: %d \n", -errno);
+  //   return -errno;
+  // }
+  // debug("++ESTABLISHED(received!) \n");
+  //
+  // ret = rdma_ack_cm_event(cm_event);
+  // if (ret) {
+  //   rdma_error("++ESTABLISHED(failed to ack) %d\n", -errno);
+  //   return -errno;
+  // }
 
-  conn_param.initiator_depth = 3;
-  conn_param.responder_resources = 3;
-  ret = rdma_accept(c->cm_event_id, &conn_param);
-  if (ret) {
-    rdma_error("++ACCEPT(error), errno: %d \n", -errno);
-    return -errno;
-  }
-
-  debug("++ESTABLISHED(waiting...) \n");
-  struct rdma_cm_event *cm_event = NULL;
-  ret =
-      process_rdma_cm_event(EventChannel, RDMA_CM_EVENT_ESTABLISHED, &cm_event);
-  if (ret) {
-    rdma_error("++ESTABLISHED(error), errnp: %d \n", -errno);
-    return -errno;
-  }
-  debug("++ESTABLISHED(received!) \n");
-
-  ret = rdma_ack_cm_event(cm_event);
-  if (ret) {
-    rdma_error("++ESTABLISHED(failed to ack) %d\n", -errno);
-    return -errno;
-  }
-
-  memcpy(&remote_sockaddr, rdma_get_peer_addr(c->cm_event_id),
-         sizeof(struct sockaddr_in));
-  printf("A new connection is accepted from %s \n",
-         inet_ntoa(remote_sockaddr.sin_addr));
+  // memcpy(&remote_sockaddr, rdma_get_peer_addr(c->cm_event_id),
+  //        sizeof(struct sockaddr_in));
+  // printf("A new connection is accepted from %s \n",
+  //        inet_ntoa(remote_sockaddr.sin_addr));
 
   printf("CLIENT: %p \n", c);
   printf("CompCHan %p \n", c->completionChannel);
