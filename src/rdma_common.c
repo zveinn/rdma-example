@@ -101,15 +101,16 @@ int get_rdma_cm_event(struct rdma_event_channel *echannel,
     return -errno;
   }
 
-  if (0 != (*cm_event)->status) {
-    rdma_error("++EVENT(invalid status): %d\n", (*cm_event)->status);
-    ret = -((*cm_event)->status);
-    rdma_ack_cm_event(*cm_event);
-    return ret;
-  }
+  // if (0 != (*cm_event)->status) {
+  //   rdma_error("++EVENT(invalid status): %d\n", (*cm_event)->status);
+  //   ret = -((*cm_event)->status);
+  //   rdma_ack_cm_event(*cm_event);
+  //   return ret;
+  // }
 
   debug("-------------------------\n");
   debug("++EVENT(%s) \n", rdma_event_str((*cm_event)->event));
+  debug("++EVENT(STATUS) %d \n", (*cm_event)->status);
   debug("++EVENT(ID) %p \n", (*cm_event)->id);
   debug("++EVENT(PORT) %d \n", (*cm_event)->id->port_num);
   debug("++EVENT(QP) %d \n", (*cm_event)->param.conn.qp_num);

@@ -464,6 +464,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
       break;
     case RDMA_CM_EVENT_REJECTED:
       // acceptConnection(event);
+      printf("REJECT: %s\n", rdma_event_str(event->event));
       break;
     default:
       printf("Unknown event: %s\n", rdma_event_str(event->event));
