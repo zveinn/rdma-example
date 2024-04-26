@@ -147,6 +147,7 @@ static int accept_client_connection(client *c) {
     return -errno;
   }
   debug("++ESTABLISHED(received!) \n");
+  debug("++ESTABLISHED(ID) %p \n", cm_event->id);
 
   ret = rdma_ack_cm_event(cm_event);
   if (ret) {
@@ -337,11 +338,13 @@ void *handle_client(void *arg) {
     rdma_error("Failed to setup client resources, ret = %d \n", ret);
     return NULL;
   }
+
   ret = accept_client_connection(c);
   if (ret) {
     rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return NULL;
   }
+
   ret = send_server_metadata_to_client(c);
   if (ret) {
     rdma_error("Failed to send server metadata to the client, ret = %d \n",
@@ -367,7 +370,7 @@ static int start_rdma_server(struct sockaddr_in *server_addr) {
   }
   debug("+EventChannel: %p\n", EventChannel);
 
-  ret = rdma_create_id(EventChannel, &ServerID, NULL, RDMA_PS_TCP);
+  ret = rdma_create_id(EventChannel, &ServerID, NULL, RDMA_PS_UDP);
   if (ret) {
     rdma_error("Creating server cm id failed with errno: %d ", -errno);
     return -errno;
