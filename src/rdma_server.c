@@ -108,10 +108,10 @@ static int setup_client_resources(client *c) {
     return -errno;
   }
 
-  // ret = createQueuePairs(c);
-  // if (ret) {
-  //   return NULL;
-  // }
+  ret = createQueuePairs(c);
+  if (ret) {
+    return NULL;
+  }
 
   return ret;
 }
@@ -366,16 +366,6 @@ void *handle_client(void *arg) {
   int ret = -1;
   client *c = (client *)arg;
   printf("client: id: %p \n", c->cm_event_id);
-
-  // ret = setup_client_resources(c);
-  // if (ret) {
-  //   rdma_error("Failed to setup client resources, ret = %d \n", ret);
-  //   return NULL;
-  // }
-  ret = createQueuePairs(c);
-  if (ret) {
-    return NULL;
-  }
 
   ret = register_meta(c);
   if (ret) {
