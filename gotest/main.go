@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"fmt"
+	"reflect"
 )
 
 func main() {
@@ -17,5 +18,5 @@ func RdmaCreateEventChannel() {
 	fmt.Println("CHAN:", channel)
 	fmt.Printf("CHAN: %p", channel)
 	fmt.Printf("CHAN: %p", &channel)
-	fmt.Println(channel.(*_Ctype_struct_rdma_event_channel))
+	fmt.Println(reflect.TypeOf(channel))
 }
