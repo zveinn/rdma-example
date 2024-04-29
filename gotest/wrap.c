@@ -1,7 +1,7 @@
 // #define LOCAL_HEADER (0)
 #define SERVER_HEADER (1)
 #ifdef LOCAL_HEADER
-#include "rdma/rdma_cma.h"
+#include "../rdma/rdma_cma.h"
 #endif
 
 #ifdef SERVER_HEADER
