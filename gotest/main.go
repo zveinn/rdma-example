@@ -6,7 +6,6 @@ import "C"
 
 import (
 	"fmt"
-	"unsafe"
 )
 
 func main() {
@@ -18,5 +17,5 @@ func RdmaCreateEventChannel() {
 	fmt.Println("CHAN:", channel)
 	fmt.Printf("CHAN: %p", channel)
 	fmt.Printf("CHAN: %p", &channel)
-	fmt.Printf("CHANU: %p", unsafe.Pointer(uint32(channel)))
+	fmt.Println(channel.(*_Ctype_struct_rdma_event_channel))
 }
