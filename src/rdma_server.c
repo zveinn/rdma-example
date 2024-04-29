@@ -413,7 +413,6 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
   }
 
   // struct sockaddr_in remote_sockaddr;
-  //
   memset(&requested_clients[i]->conn_param, 0,
          sizeof(requested_clients[i]->conn_param));
 
