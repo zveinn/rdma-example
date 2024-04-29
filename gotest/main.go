@@ -1,5 +1,6 @@
 package main
 
+// #cgo LDFLAGS: -lrdmacm
 // #include <rdma/rdma_cma.h>
 import "C"
 import "fmt"
