@@ -1,18 +1,14 @@
 package main
 
-// #include "wrap.h"
 // #include <rdma/rdma_cma.h>
 import "C"
 import "fmt"
 
 func main() {
-	C.hello()
 	RdmaCreateEventChannel()
-
-	// Use the channel object (cast if necessary)
 }
 
 func RdmaCreateEventChannel() {
-	channel := C.rdma_create_event_channel_wrapper()
+	channel := C.rdma_create_event_channel()
 	fmt.Println("CHAN:", channel)
 }
