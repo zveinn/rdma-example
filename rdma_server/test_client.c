@@ -271,6 +271,10 @@ static int client_xchange_metadata_with_server() {
   client_send_wr.opcode = IBV_WR_SEND;
   client_send_wr.send_flags = IBV_SEND_SIGNALED;
   printf("D4 \n");
+  printf("1:%p", client_qp);
+  printf("2:%p", &client_send_wr);
+  printf("3:%p", &bad_client_send_wr);
+  printf("D4 \n");
   /* Now we post it */
   ret = ibv_post_send(client_qp, &client_send_wr, &bad_client_send_wr);
   if (ret) {
