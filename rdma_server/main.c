@@ -273,6 +273,7 @@ static int disconnectClient(struct rdma_cm_event *event) {
   if (ret) {
     return ret;
   }
+  printf("POST ACK: %p", c->cm_event_id);
 
   ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
