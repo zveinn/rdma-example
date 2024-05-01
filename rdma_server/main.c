@@ -125,17 +125,95 @@ static int setup_client_resources(connection *c) {
   return ret;
 }
 
+static int registerServerMetadataBuffer(connection *c) {
+  int ret = -1;
+
+  printf("++LOCAL META\n");
+  c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr, sizeof(c->metaAttr),
+                                   (IBV_ACCESS_LOCAL_WRITE));
+  if (!c->metaMR) {
+    debug("++CLIENT_MR(error)\n");
+    return -ENOMEM;
+  }
+
+  struct ibv_sge SGE;
+  struct ibv_recv_wr RCV_WR;
+  struct ibv_recv_wr *BAD_RCV_WR;
+
+  SGE.addr = (uint64_t)c->metaMR->addr;
+  SGE.length = c->metaMR->length;
+  SGE.lkey = c->metaMR->lkey;
+
+  bzero(&RCV_WR, sizeof(RCV_WR));
+  RCV_WR.sg_list = &SGE;
+  RCV_WR.num_sge = 1;
+  ret = ibv_post_recv(c->cm_event_id->qp, &RCV_WR, &BAD_RCV_WR);
+  if (ret) {
+    debug("++IBV_POST_REC(ERR), errno: %d \n", ret);
+    return ret;
+  }
+  debug("++IBV_POST_REC \n");
+
+  return NULL;
+}
+
+static int send_server_metadata_to_client(connection *c) {
+  struct ibv_wc wc;
+  int ret = -1;
+
+  printf("???...\n");
+  show_rdma_buffer_attr(&c->metaAttr);
+  printf("?? : %u bytes \n", c->metaAttr.length);
+
+  c->dataBuffer = calloc(4, 1);
+  c->serverMR =
+      rdma_buffer_register(c->PD, c->dataBuffer, 4,
+                           (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+                            IBV_ACCESS_REMOTE_WRITE));
+
+  if (!c->serverMR) {
+    debug("Server failed to create a buffer \n");
+    return -ENOMEM;
+  }
+
+  c->Server_B2.address = (uint64_t)c->serverMR->addr;
+  c->Server_B2.length = (uint32_t)c->serverMR->length;
+  c->Server_B2.stag.local_stag = (uint32_t)c->serverMR->lkey;
+
+  c->serverMetaMR = rdma_buffer_register(
+      c->PD, &c->Server_B2, sizeof(c->Server_B2), IBV_ACCESS_LOCAL_WRITE);
+
+  if (!c->serverMetaMR) {
+    debug("Server failed to create to hold server metadata \n");
+    return -ENOMEM;
+  }
+
+  c->Server_SGE.addr = (uint64_t)&c->Server_B2;
+  c->Server_SGE.length = sizeof(c->Server_B2);
+  c->Server_SGE.lkey = c->serverMetaMR->lkey;
+
+  bzero(&c->Server_RCV_WR, sizeof(c->Server_RCV_WR));
+  c->Server_RCV_WR.sg_list = &c->Server_SGE;
+  c->Server_RCV_WR.num_sge = 1;
+  c->Server_RCV_WR.opcode = IBV_WR_SEND;
+  c->Server_RCV_WR.send_flags = IBV_SEND_SIGNALED;
+
+  ret = ibv_post_send(c->cm_event_id->qp, &c->Server_RCV_WR,
+                      &c->Server_BAD_RCV_WR);
+  if (ret) {
+    debug("Posting of server metdata failed, errno: %d \n", -errno);
+    return -errno;
+  }
+
+  debug("Local buffer metadata has been sent to the client \n");
+  return 0;
+}
 void *handle_client(void *arg) {
   // void *handle_client(client *c) {
   printf("inside thread\n");
   int ret = -1;
   connection *c = (connection *)arg;
   printf("client: id: %p \n", c->cm_event_id);
-
-  // ret = register_meta(c);
-  // if (ret) {
-  //   return NULL;
-  // }
 
   // ret = send_server_metadata_to_client(c);
   // if (ret) {
@@ -209,15 +287,12 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
     debug("++RESOURCES, ret = %d \n", ret);
     return ret;
   }
-  //
-  // //
-  // ret = register_meta(connections[i]);
-  // if (ret) {
-  //   debug("Failed to handle client cleanly, ret = %d \n", ret);
-  //   return ret;
-  // }
-  //
-  // struct sockaddr_in remote_sockaddr;
+
+  ret = registerServerMetadataBuffer(connections[i]);
+  if (ret) {
+    return ret;
+  }
+
   memset(&connections[i]->conn_param, 0, sizeof(connections[i]->conn_param));
 
   connections[i]->conn_param.initiator_depth = 3;

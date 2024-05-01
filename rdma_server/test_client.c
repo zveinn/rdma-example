@@ -279,9 +279,17 @@ static int client_xchange_metadata_with_server() {
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
    * its buffer information */
-  // sleep(5);
-  struct ibv_wc *wc;
+  sleep(5);
+  struct ibv_wc wc[2];
   ret = process_work_completion_events(io_completion_channel, wc);
+  if (ret != 2) {
+    debug("We failed to get work completions , ret = %d \n", ret);
+    return ret;
+  }
+
+  printf("FIRST EVENT RECEIVED ......\n");
+  struct ibv_wc wc2[2];
+  ret = process_work_completion_events(io_completion_channel, wc2);
   if (ret != 2) {
     debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
