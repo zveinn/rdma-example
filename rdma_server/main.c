@@ -118,7 +118,7 @@ static int setup_client_resources(connection *c) {
     return ret;
   }
 
-  debug("++CLIENT RESOURCES++ ID:(%p) PD(%p) CQ(%p|%d) CC(%p) QP(%p)",
+  debug("++CLIENT RESOURCES++ ID:(%p) PD(%p) CQ(%p|%d) CC(%p) QP(%p)\n",
         c->cm_event_id, c->PD, c->CQ, c->CQ->cqe, c->completionChannel,
         c->cm_event_id->qp);
 

@@ -232,6 +232,7 @@ static int client_connect_to_server() {
  * for the illustration purposes
  */
 static int client_xchange_metadata_with_server() {
+  sleep(3);
 
   int ret = -1;
 
