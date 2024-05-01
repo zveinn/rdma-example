@@ -66,6 +66,65 @@ typedef struct {
 const int MaxConnections = 10000;
 connection *connections[10000];
 
+static int createQueuePairs(connection *c) {
+  int ret = -1;
+  bzero(&c->QP, sizeof c->QP);
+  c->QP.cap.max_recv_sge = MAX_SGE;
+  c->QP.cap.max_recv_wr = MAX_WR;
+  c->QP.cap.max_send_sge = MAX_SGE;
+  c->QP.cap.max_send_wr = MAX_WR;
+  c->QP.qp_type = IBV_QPT_RC;
+  c->QP.recv_cq = c->CQ;
+  c->QP.send_cq = c->CQ;
+  ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
+  if (ret) {
+    debug("++QP(error) errno: %d\n", -errno);
+    return ret;
+  }
+
+  debug("++QP %p\n", c->cm_event_id->qp);
+  return ret;
+}
+
+static int setup_client_resources(connection *c) {
+  int ret = -1;
+
+  c->PD = ibv_alloc_pd(c->cm_event_id->verbs);
+  if (!c->PD) {
+    debug("++PD errno: %d\n", -errno);
+    return -errno;
+  }
+  debug("++PD %p \n", c->PD);
+
+  c->completionChannel = ibv_create_comp_channel(c->cm_event_id->verbs);
+  if (!c->completionChannel) {
+    debug("++COMPCHANNEL(error), %d\n", -errno);
+    return -errno;
+  }
+  debug("++COMPCHANNEL %p \n", c->completionChannel);
+
+  c->CQ = ibv_create_cq(c->cm_event_id->verbs, CQ_CAPACITY, NULL,
+                        c->completionChannel, 0);
+  if (!c->CQ) {
+    debug("++CQ(error), errno: %d\n", -errno);
+    return -errno;
+  }
+  debug("++CQ %p with %d elements \n", c->CQ, c->CQ->cqe);
+
+  ret = ibv_req_notify_cq(c->CQ, 0);
+  if (ret) {
+    debug("++NOTIFY(error) errno: %d \n", -errno);
+    return -errno;
+  }
+
+  ret = createQueuePairs(c);
+  if (ret) {
+    return NULL;
+  }
+
+  return ret;
+}
+
 void *handle_client(void *arg) {
   // void *handle_client(client *c) {
   printf("inside thread\n");
@@ -144,11 +203,11 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
   }
 
   int ret = -1;
-  // ret = setup_client_resources(connections[i]);
-  // if (ret) {
-  //   debug("++RESOURCES, ret = %d \n", ret);
-  //   return ret;
-  // }
+  ret = setup_client_resources(connections[i]);
+  if (ret) {
+    debug("++RESOURCES, ret = %d \n", ret);
+    return ret;
+  }
   //
   // //
   // ret = register_meta(connections[i]);

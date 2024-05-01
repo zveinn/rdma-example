@@ -49,13 +49,13 @@
 #define ACN_RDMA_DEBUG (1)
 
 /* Capacity of the completion queue (CQ) */
-#define CQ_CAPACITY (16)
+#define CQ_CAPACITY (200)
 /* MAX SGE capacity */
-#define MAX_SGE (2)
+#define MAX_SGE (10)
 /* MAX work requests */
-#define MAX_WR (8)
+#define MAX_WR (10)
 /* Default port where the RDMA server is listening */
-#define DEFAULT_RDMA_PORT (20886)
+#define DEFAULT_RDMA_PORT (22222)
 
 /*
  * We use attribute so that compiler does not step in and try to pad the
