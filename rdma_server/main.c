@@ -262,25 +262,33 @@ static int disconnectClient(struct rdma_cm_event *event) {
     debug("client not found during disconnect: %p", event->id);
     return ret;
   }
+  printf("removing client 2\n");
 
   rdma_destroy_qp(c->cm_event_id);
+  printf("removing client 3\n");
   ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
     debug("Failed to destroy client id cleanly, %d \n", -errno);
   }
+  printf("removing client 4\n");
   ret = ibv_destroy_cq(c->CQ);
   if (ret) {
     debug("Failed to destroy completion queue cleanly, %d \n", -errno);
   }
 
+  printf("removing client 5\n");
   ret = ibv_destroy_comp_channel(c->completionChannel);
   if (ret) {
     debug("Failed to destroy completion channel cleanly, %d \n", -errno);
   }
+  printf("removing client 6\n");
 
   rdma_buffer_deregister(c->metaMR);
+  printf("removing client 7\n");
   rdma_buffer_free(c->serverMR);
+  printf("removing client 8\n");
   rdma_buffer_deregister(c->serverMetaMR);
+  printf("removing client 9\n");
 
   ret = ibv_dealloc_pd(c->PD);
   if (ret) {
