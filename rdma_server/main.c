@@ -288,10 +288,10 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
     return ret;
   }
 
-  ret = registerServerMetadataBuffer(connections[i]);
-  if (ret) {
-    return ret;
-  }
+  // ret = registerServerMetadataBuffer(connections[i]);
+  // if (ret) {
+  //   return ret;
+  // }
 
   memset(&connections[i]->conn_param, 0, sizeof(connections[i]->conn_param));
 
