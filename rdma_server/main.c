@@ -214,7 +214,7 @@ int startRDMAServer(char *addr, char *port) {
       continue;
     }
 
-    printf("++++++EVENT: %d", newEvent->event);
+    printf("++++++EVENT: %d\n", newEvent->event);
     switch (newEvent->event) {
 
     case RDMA_CM_EVENT_ADDR_RESOLVED:
