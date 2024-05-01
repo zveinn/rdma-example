@@ -265,12 +265,18 @@ static int disconnectClient(struct rdma_cm_event *event) {
     return ret;
   }
   printf("removing client 2\n");
-  printf("PRE ACK: %p %p\n", c->cm_event_id, event->id);
-  ret = rdma_ack_cm_event(event);
+  // printf("PRE ACK: %p %p\n", c->cm_event_id, event->id);
+  // ret = rdma_ack_cm_event(event);
+  // if (ret) {
+  //   return ret;
+  // }
+  // printf("POST ACK: %p\n", c->cm_event_id);
+  ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
-    return ret;
+    printf("removed\n");
+    // debug("Failed to destroy client id cleanly, %d \n", -errno);
   }
-  printf("POST ACK: %p\n", c->cm_event_id);
+  printf("removing client last: %p \n", c->cm_event_id);
 
   rdma_destroy_qp(c->cm_event_id);
   printf("removing client 3\n");
@@ -297,13 +303,6 @@ static int disconnectClient(struct rdma_cm_event *event) {
   ret = ibv_dealloc_pd(c->PD);
   if (ret) {
     debug("Failed to destroy client protection domain cleanly, %d \n", -errno);
-  }
-
-  printf("removing client last: %p \n", c->cm_event_id);
-  ret = rdma_destroy_id(c->cm_event_id);
-  if (ret) {
-    printf("removed\n");
-    // debug("Failed to destroy client id cleanly, %d \n", -errno);
   }
 
   printf("CLIENT REMOVED!\n");
