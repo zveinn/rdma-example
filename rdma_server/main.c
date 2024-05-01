@@ -77,12 +77,6 @@ void *handle_client(void *arg) {
   // if (ret) {
   //   return NULL;
   // }
-  struct ibv_wc wc;
-  ret = process_work_completion_events(c->completionChannel, &wc, 1);
-  if (ret != 1) {
-    debug("Failed to receive , ret = %d \n", ret);
-    return NULL;
-  }
 
   // ret = send_server_metadata_to_client(c);
   // if (ret) {
@@ -97,6 +91,12 @@ void *handle_client(void *arg) {
   // }
   //
   while (1) {
+    struct ibv_wc wc;
+    ret = process_work_completion_events(c->completionChannel, &wc);
+    if (ret != 1) {
+      debug("Failed to receive , ret = %d \n", ret);
+      // return NULL;
+    }
     printf("data: %s\n", c->dataBuffer);
     sleep(1);
   };

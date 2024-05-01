@@ -130,11 +130,7 @@ int process_work_completion_events(struct ibv_comp_channel *comp_channel,
   void *context = NULL;
   int ret = -1, i, total_wc = 0;
   /* We wait for the notification on the CQ channel */
-  ret = ibv_get_cq_event(
-      comp_channel, /* IO channel where we are expecting the notification */
-      &cq_ptr,   /* which CQ has an activity. This should be the same as CQ we
-                    created before */
-      &context); /* Associated CQ user context, which we did set */
+  ret = ibv_get_cq_event(comp_channel, &cq_ptr, &context);
   if (ret) {
     rdma_error("Failed to get next CQ event due to %d \n", -errno);
     return -errno;
