@@ -245,6 +245,7 @@ void *handle_client(void *arg) {
 
 static int disconnectClient(struct rdma_cm_event *event) {
 
+  printf("removing client\n");
   int i;
   int ret = -1;
   connection *c = NULL;
@@ -259,7 +260,7 @@ static int disconnectClient(struct rdma_cm_event *event) {
   }
   if (!c) {
     debug("client not found during disconnect: %p", event->id);
-    return 1;
+    return ret;
   }
 
   rdma_destroy_qp(c->cm_event_id);
