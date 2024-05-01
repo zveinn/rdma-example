@@ -238,6 +238,7 @@ void *handle_client(void *arg) {
 }
 
 void *removeClient(void *arg) {
+  printf("inside thread\n");
   connection *c = (connection *)arg;
   if (!c) {
     debug("client not found during disconnect: %p\n", c);
@@ -299,15 +300,13 @@ static int disconnectClient(struct rdma_cm_event *event) {
 
   pthread_t thread;
   int i;
-  connection *c = NULL;
   for (i = 0; i < MaxConnections; i++) {
     if (connections[i] == 0) {
       continue;
     }
 
-    // printf("compare: %p %p\n", connections[i]->cm_event_id, event->id);
+    printf("compare: %p %p\n", connections[i]->cm_event_id, event->id);
     if (connections[i]->cm_event_id == event->id) {
-      c = connections[i];
       if (pthread_create(&thread, NULL, removeClient, connections[i]) != 0) {
         perror("++THREAD(failed)\n");
         return ErrUnableToCreateThread;
