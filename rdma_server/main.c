@@ -139,30 +139,31 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
     }
   }
   if (found == 0) {
+    debug("no connection slots available, %d", found);
     return ErrUnableToTooManyConnections;
   }
 
+  int ret = -1;
   // ret = setup_client_resources(connections[i]);
   // if (ret) {
-  //   rdma_error("++RESOURCES, ret = %d \n", ret);
-  //   return;
+  //   debug("++RESOURCES, ret = %d \n", ret);
+  //   return ret;
   // }
   //
   // //
   // ret = register_meta(connections[i]);
   // if (ret) {
-  //   rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
-  //   return;
+  //   debug("Failed to handle client cleanly, ret = %d \n", ret);
+  //   return ret;
   // }
-
+  //
   // struct sockaddr_in remote_sockaddr;
   memset(&connections[i]->conn_param, 0, sizeof(connections[i]->conn_param));
 
   connections[i]->conn_param.initiator_depth = 3;
   connections[i]->conn_param.responder_resources = 3;
   printf("CALLING ACCEPT \n");
-  int ret =
-      rdma_accept(connections[i]->cm_event_id, &connections[i]->conn_param);
+  ret = rdma_accept(connections[i]->cm_event_id, &connections[i]->conn_param);
   if (ret) {
     return ErrUnableToAcceptConnection;
     // debug("++ACCEPT(error), errno: %d \n", -errno);
@@ -171,24 +172,15 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
 }
 
 int main(int argc, char **argv) {
-  // int startRDMAServer(char *addr, char *port) {
   int ret, option;
 
-  // struct sockaddr_in server_sockaddr;
-  //
-  // bzero(&server_sockaddr, sizeof server_sockaddr);
-  // server_sockaddr.sin_family = AF_INET;
-  // server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  // server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
   struct sockaddr_in server_sockaddr;
   bzero(&server_sockaddr, sizeof server_sockaddr);
-  server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
-  server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
-  /* Parse Command Line Arguments, not the most reliable code */
+  server_sockaddr.sin_family = AF_INET;
+  server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
   while ((option = getopt(argc, argv, "a:p:")) != -1) {
     switch (option) {
     case 'a':
-      /* Remember, this will overwrite the port info */
       ret = get_addr(optarg, (struct sockaddr *)&server_sockaddr);
       if (ret) {
         debug("Invalid IP \n");
@@ -196,7 +188,6 @@ int main(int argc, char **argv) {
       }
       break;
     case 'p':
-      /* passed port to listen on */
       server_sockaddr.sin_port = htons(strtol(optarg, NULL, 0));
       break;
     default:
@@ -205,14 +196,8 @@ int main(int argc, char **argv) {
     }
   }
   if (!server_sockaddr.sin_port) {
-    /* If still zero, that mean no port info provided */
-    server_sockaddr.sin_port = htons(DEFAULT_RDMA_PORT); /* use default port */
+    server_sockaddr.sin_port = htons(DEFAULT_RDMA_PORT);
   }
-
-  // ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
-  // if (ret) {
-  //   return ErrInvalidServerIP;
-  // }
 
   EventChannel = rdma_create_event_channel();
   if (!EventChannel) {
@@ -237,12 +222,12 @@ int main(int argc, char **argv) {
     return ErrUnableToListenOnAddress;
   }
 
-  printf("EC: %p\n", &EventChannel);
-  printf("SID: %p\n", &serverID);
+  // printf("EC: %p\n", &EventChannel);
+  // printf("SID: %p\n", &serverID);
 
   struct rdma_cm_event *newEvent;
   while (1) {
-    printf("WAIT FOR EVENT\n");
+    printf("WAITING FOR EVENT...\n");
     ret = get_rdma_cm_event(EventChannel, &newEvent);
     if (ret) {
       debug("GET event errno: %d \n", -errno);
@@ -253,7 +238,6 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    printf("++++++EVENT: %d\n", newEvent->event);
     switch (newEvent->event) {
 
     case RDMA_CM_EVENT_ADDR_RESOLVED:
