@@ -353,7 +353,6 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
     return ErrUnableToTooManyConnections;
   }
 
-  int ret = -1;
   ret = setup_client_resources(connections[i]);
   if (ret) {
     debug("++RESOURCES, ret = %d \n", ret);
