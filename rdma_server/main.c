@@ -21,6 +21,12 @@ const int ErrUnableToListenOnAddress = 5;
 const int ErrUnableToTooManyConnections = 6;
 const int ErrUnableToEstablishConnection = 7;
 const int ErrUnableToAcceptConnection = 8;
+const int ErrUnableToAllocatePD = 9;
+const int ErrUnableToCreateCompletionChannel = 10;
+const int ErrUnableToCreateCompletionQueue = 11;
+const int ErrUnableToRegisterCQNotifications = 12;
+const int ErrUnableToCreateQueuePairs = 13;
+
 const int ErrUnableToCreateThread = 99;
 
 const int CodeOK = 100;
@@ -73,16 +79,13 @@ static int createQueuePairs(connection *c) {
   c->QP.cap.max_recv_wr = MAX_WR;
   c->QP.cap.max_send_sge = MAX_SGE;
   c->QP.cap.max_send_wr = MAX_WR;
-  c->QP.qp_type = IBV_QPT_RC;
+  c->QP.qp_type = IBV_QPT_UC;
   c->QP.recv_cq = c->CQ;
   c->QP.send_cq = c->CQ;
   ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
   if (ret) {
-    debug("++QP(error) errno: %d\n", -errno);
-    return ret;
+    return ErrUnableToCreateQueuePairs;
   }
-
-  debug("++QP %p\n", c->cm_event_id->qp);
   return ret;
 }
 
@@ -91,36 +94,33 @@ static int setup_client_resources(connection *c) {
 
   c->PD = ibv_alloc_pd(c->cm_event_id->verbs);
   if (!c->PD) {
-    debug("++PD errno: %d\n", -errno);
-    return -errno;
+    return ErrUnableToAllocatePD;
   }
-  debug("++PD %p \n", c->PD);
 
   c->completionChannel = ibv_create_comp_channel(c->cm_event_id->verbs);
   if (!c->completionChannel) {
-    debug("++COMPCHANNEL(error), %d\n", -errno);
-    return -errno;
+    return ErrUnableToCreateCompletionChannel;
   }
-  debug("++COMPCHANNEL %p \n", c->completionChannel);
 
   c->CQ = ibv_create_cq(c->cm_event_id->verbs, CQ_CAPACITY, NULL,
                         c->completionChannel, 0);
   if (!c->CQ) {
-    debug("++CQ(error), errno: %d\n", -errno);
-    return -errno;
+    return ErrUnableToCreateCompletionQueue;
   }
-  debug("++CQ %p with %d elements \n", c->CQ, c->CQ->cqe);
 
   ret = ibv_req_notify_cq(c->CQ, 0);
   if (ret) {
-    debug("++NOTIFY(error) errno: %d \n", -errno);
-    return -errno;
+    return ErrUnableToRegisterCQNotifications;
   }
 
   ret = createQueuePairs(c);
   if (ret) {
-    return NULL;
+    return ret;
   }
+
+  debug("++CLIENT RESOURCES++ ID:(%p) PD(%p) CQ(%p|%d) CC(%p) QP(%p)",
+        c->cm_event_id, c->PD, c->CQ, c->CQ->cqe, c->completionChannel,
+        c->cm_event_id->qp);
 
   return ret;
 }
@@ -128,7 +128,6 @@ static int setup_client_resources(connection *c) {
 static int registerServerMetadataBuffer(connection *c) {
   int ret = -1;
 
-  printf("++LOCAL META\n");
   c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr, sizeof(c->metaAttr),
                                    (IBV_ACCESS_LOCAL_WRITE));
   if (!c->metaMR) {
@@ -343,7 +342,7 @@ int main(int argc, char **argv) {
     return ErrUnableToCreateEventChannel;
   }
 
-  ret = rdma_create_id(EventChannel, &serverID, NULL, RDMA_PS_TCP);
+  ret = rdma_create_id(EventChannel, &serverID, NULL, RDMA_PS_UDP);
   if (ret) {
     // debug("Creating server cm id failed with errno: %d ", -errno);
     return ErrUnableToCreateServerCMID;
