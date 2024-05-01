@@ -238,6 +238,7 @@ void *handle_client(void *arg) {
 }
 
 void *removeClient(void *arg) {
+  sleep(2);
   printf("inside thread\n");
   connection *c = (connection *)arg;
   if (!c) {
@@ -254,16 +255,11 @@ void *removeClient(void *arg) {
   // }
 
   // printf("removing client last: %p \n", c->cm_event_id);
-  int ret = -1;
-  ret = rdma_ack_cm_event(c->cm_event_id->event);
-  if (ret) {
-    printf("DISCONNECT ACK FAILED %d", ret);
-    // return;
-  }
 
   rdma_destroy_qp(c->cm_event_id);
   printf("removing client 3\n");
 
+  int ret = -1;
   ret = ibv_destroy_cq(c->CQ);
   if (ret) {
     debug("Failed to destroy completion queue cleanly, %d \n", -errno);
@@ -313,6 +309,11 @@ static int disconnectClient(struct rdma_cm_event *event) {
     }
   }
 
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    printf("DISCONNECT ACK FAILED %d", ret);
+    return ret;
+  }
   return 0;
 }
 
