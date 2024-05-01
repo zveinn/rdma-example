@@ -167,21 +167,52 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
     return ErrUnableToAcceptConnection;
     // debug("++ACCEPT(error), errno: %d \n", -errno);
   }
+  return CodeOK;
 }
-int startRDMAServer(char *addr, char *port) {
+
+int main(int argc, char **argv) {
+  // int startRDMAServer(char *addr, char *port) {
   int ret, option;
 
+  // struct sockaddr_in server_sockaddr;
+  //
+  // bzero(&server_sockaddr, sizeof server_sockaddr);
+  // server_sockaddr.sin_family = AF_INET;
+  // server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  // server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
   struct sockaddr_in server_sockaddr;
-
   bzero(&server_sockaddr, sizeof server_sockaddr);
-  server_sockaddr.sin_family = AF_INET;
-  server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
-
-  ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
-  if (ret) {
-    return ErrInvalidServerIP;
+  server_sockaddr.sin_family = AF_INET; /* standard IP NET address */
+  server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* passed address */
+  /* Parse Command Line Arguments, not the most reliable code */
+  while ((option = getopt(argc, argv, "a:p:")) != -1) {
+    switch (option) {
+    case 'a':
+      /* Remember, this will overwrite the port info */
+      ret = get_addr(optarg, (struct sockaddr *)&server_sockaddr);
+      if (ret) {
+        debug("Invalid IP \n");
+        return ret;
+      }
+      break;
+    case 'p':
+      /* passed port to listen on */
+      server_sockaddr.sin_port = htons(strtol(optarg, NULL, 0));
+      break;
+    default:
+      usage();
+      break;
+    }
   }
+  if (!server_sockaddr.sin_port) {
+    /* If still zero, that mean no port info provided */
+    server_sockaddr.sin_port = htons(DEFAULT_RDMA_PORT); /* use default port */
+  }
+
+  // ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
+  // if (ret) {
+  //   return ErrInvalidServerIP;
+  // }
 
   EventChannel = rdma_create_event_channel();
   if (!EventChannel) {
@@ -206,9 +237,8 @@ int startRDMAServer(char *addr, char *port) {
     return ErrUnableToListenOnAddress;
   }
 
-  printf("EC: %p", &EventChannel);
-  printf("SID: %p", &serverID);
-  printf("ADDR: %p", &server_sockaddr);
+  printf("EC: %p\n", &EventChannel);
+  printf("SID: %p\n", &serverID);
 
   struct rdma_cm_event *newEvent;
   while (1) {
@@ -273,9 +303,8 @@ int startRDMAServer(char *addr, char *port) {
   return ErrNone;
 }
 
-int main(int argc, char **argv) {
-  printf("START\n");
-  int ret = startRDMAServer("15.15.15.2", "11111");
-  printf("EXIT: %d\n", ret);
-  return 0;
-}
+// printf("START\n");
+// int ret = startRDMAServer("15.15.15.2", "11111");
+// printf("EXIT: %d\n", ret);
+// return 0;
+// }
