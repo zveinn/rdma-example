@@ -275,11 +275,10 @@ static int disconnectClient(struct rdma_cm_event *event) {
   rdma_destroy_qp(c->cm_event_id);
   printf("removing client 3\n");
 
-  ret = rdma_destroy_id(c->cm_event_id);
+  ret = ibv_destroy_cq(c->CQ);
   if (ret) {
-    debug("Failed to destroy client id cleanly, %d \n", -errno);
+    debug("Failed to destroy completion queue cleanly, %d \n", -errno);
   }
-  printf("removing client 4\n");
 
   printf("removing client 5\n");
   ret = ibv_destroy_comp_channel(c->completionChannel);
@@ -299,9 +298,10 @@ static int disconnectClient(struct rdma_cm_event *event) {
   if (ret) {
     debug("Failed to destroy client protection domain cleanly, %d \n", -errno);
   }
-  ret = ibv_destroy_cq(c->CQ);
+  printf("removing client 4\n");
+  ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
-    debug("Failed to destroy completion queue cleanly, %d \n", -errno);
+    debug("Failed to destroy client id cleanly, %d \n", -errno);
   }
 
   printf("CLIENT REMOVED!\n");
