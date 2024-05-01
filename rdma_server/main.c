@@ -298,10 +298,12 @@ static int disconnectClient(struct rdma_cm_event *event) {
   if (ret) {
     debug("Failed to destroy client protection domain cleanly, %d \n", -errno);
   }
+
   printf("removing client 4\n");
   ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
-    debug("Failed to destroy client id cleanly, %d \n", -errno);
+    printf("removed\n");
+    // debug("Failed to destroy client id cleanly, %d \n", -errno);
   }
 
   printf("CLIENT REMOVED!\n");
