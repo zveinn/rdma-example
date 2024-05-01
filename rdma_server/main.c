@@ -10,7 +10,7 @@ void usage() {
   printf("(default port is %d)\n", DEFAULT_RDMA_PORT);
   exit(1);
 }
-const int ListenerBacklog = 2000;
+const int ListenerBacklog = 20;
 
 const int ErrNone = 0;
 const int ErrInvalidServerIP = 1;
@@ -176,7 +176,7 @@ int startRDMAServer(char *addr, char *port) {
   bzero(&server_sockaddr, sizeof server_sockaddr);
   server_sockaddr.sin_family = AF_INET;
   server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  server_sockaddr.sin_port = (int)strtol(port, NULL, 0);
+  server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
 
   ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
   if (ret) {
@@ -205,6 +205,10 @@ int startRDMAServer(char *addr, char *port) {
     // debug("rdma_listen failed errno: %d ", -errno);
     return ErrUnableToListenOnAddress;
   }
+
+  printf("EC: %p", &EventChannel);
+  printf("SID: %p", &serverID);
+  printf("ADDR: %p", &server_sockaddr);
 
   struct rdma_cm_event *newEvent;
   while (1) {
