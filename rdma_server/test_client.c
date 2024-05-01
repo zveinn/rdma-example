@@ -283,7 +283,7 @@ static int client_xchange_metadata_with_server() {
   // sleep(5);
   ret = process_work_completion_events(io_completion_channel, wc);
   if (ret != 2) {
-    debug("We failed to get 2 work completions , ret = %d \n", ret);
+    debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
   }
 

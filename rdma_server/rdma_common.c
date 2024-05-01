@@ -175,7 +175,12 @@ int process_work_completion_events(struct ibv_comp_channel *comp_channel,
   }
 
   if (wc) {
+    debug("WC ID: %lu \n", wc[0].wr_id);
+    debug("WC SLID: %d \n", wc[0].slid);
+    debug("WC QPnum: %d \n", wc[0].src_qp);
+    debug("WC QPsrc: %d \n", wc[0].qp_num);
     debug("WC STATUS: %s \n", ibv_wc_status_str(wc[0].status));
+    debug("WC OP: %d \n", wc[0].opcode);
   }
 
   ibv_ack_cq_events(cq_ptr, 1);
