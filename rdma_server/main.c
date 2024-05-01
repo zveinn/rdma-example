@@ -147,6 +147,8 @@ static int registerServerMetadataBuffer(connection *c) {
   bzero(&RCV_WR, sizeof(RCV_WR));
   RCV_WR.sg_list = &SGE;
   RCV_WR.num_sge = 1;
+
+  // WILL GENERATE A WORK COMPLETION ON THE CLIENT SIDE
   ret = ibv_post_recv(c->cm_event_id->qp, &RCV_WR, &BAD_RCV_WR);
   if (ret) {
     debug("++IBV_POST_REC(ERR), errno: %d \n", ret);
@@ -215,11 +217,11 @@ void *handle_client(void *arg) {
   connection *c = (connection *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
-  // ret = send_server_metadata_to_client(c);
-  // if (ret) {
-  //   debug("Failed to send server metadata to the client, ret = %d \n", ret);
-  //   return NULL;
-  // }
+  ret = send_server_metadata_to_client(c);
+  if (ret) {
+    debug("Failed to send server metadata to the client, ret = %d \n", ret);
+    return NULL;
+  }
   //
   // ret = disconnect_and_cleanup(c);
   // if (ret) {
@@ -235,7 +237,7 @@ void *handle_client(void *arg) {
       debug("Failed to receive , ret = %d \n", ret);
       // return NULL;
     }
-    // printf("data: %s\n", c->dataBuffer);
+    printf("data: %s\n", c->dataBuffer);
     sleep(1);
   };
 
@@ -288,10 +290,11 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
     return ret;
   }
 
-  // ret = registerServerMetadataBuffer(connections[i]);
-  // if (ret) {
-  //   return ret;
-  // }
+  // the initial handshake is a metadata exchange ??
+  ret = registerServerMetadataBuffer(connections[i]);
+  if (ret) {
+    return ret;
+  }
 
   memset(&connections[i]->conn_param, 0, sizeof(connections[i]->conn_param));
 
