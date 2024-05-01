@@ -41,9 +41,7 @@
 
 /* Error Macro*/
 #define debug(msg, args...)                                                    \
-  do {                                                                         \
-    fprintf(stderr, "%s : %d : ERROR : " msg, __FILE__, __LINE__, ##args);     \
-  } while (0);
+  fprintf(stdout, "%s: %d|| " msg, __FILE__, __LINE__, ##args);
 
 /* Debug Macro */
 #define ACN_RDMA_DEBUG (1)

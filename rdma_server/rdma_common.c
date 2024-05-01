@@ -159,13 +159,13 @@ int process_work_completion_events(struct ibv_comp_channel *comp_channel,
   ret = ibv_get_cq_event(comp_channel, &cq_ptr, &context);
   if (ret) {
     debug("Failed to get next CQ event due to %d \n", -errno);
-    return -errno;
+    return ret;
   }
 
   ret = ibv_req_notify_cq(cq_ptr, 0);
   if (ret) {
     debug("Failed to request further notifications %d \n", -errno);
-    return -errno;
+    return ret;
   }
 
   ret = ibv_poll_cq(cq_ptr, 1, wc + 0);

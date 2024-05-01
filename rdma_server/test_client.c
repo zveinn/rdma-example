@@ -282,7 +282,7 @@ static int client_xchange_metadata_with_server() {
   sleep(5);
   struct ibv_wc wc[2];
   ret = process_work_completion_events(io_completion_channel, wc);
-  if (ret != 2) {
+  if (ret) {
     debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
   }
@@ -290,7 +290,7 @@ static int client_xchange_metadata_with_server() {
   printf("FIRST EVENT RECEIVED ......\n");
   struct ibv_wc wc2[2];
   ret = process_work_completion_events(io_completion_channel, wc2);
-  if (ret != 2) {
+  if (ret) {
     debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
   }
