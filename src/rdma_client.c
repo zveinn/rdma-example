@@ -282,6 +282,7 @@ static int client_xchange_metadata_with_server() {
   /* at this point we are expecting 2 work completion. One for our
    * send and one for recv that we will get from the server for
    * its buffer information */
+  // sleep(5);
   ret = process_work_completion_events(io_completion_channel, wc, 2);
   if (ret != 2) {
     rdma_error("We failed to get 2 work completions , ret = %d \n", ret);

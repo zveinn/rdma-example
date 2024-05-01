@@ -290,6 +290,7 @@ static int send_server_metadata_to_client(client *c) {
     return -errno;
   }
 
+  sleep(5);
   ret = process_work_completion_events(c->completionChannel, &wc, 1);
   if (ret != 1) {
     rdma_error("Failed to send server metadata, ret = %d \n", ret);
