@@ -245,10 +245,6 @@ void *handle_client(void *arg) {
 
 static int disconnectClient(struct rdma_cm_event *event) {
   int ret = -1;
-  ret = rdma_ack_cm_event(event);
-  if (ret) {
-    return ret;
-  }
 
   printf("removing client %p\n", event->id);
   int i;
@@ -258,20 +254,26 @@ static int disconnectClient(struct rdma_cm_event *event) {
       continue;
     }
 
-    printf("compare: %p %p", connections[i]->cm_event_id, event->id);
+    printf("compare: %p %p\n", connections[i]->cm_event_id, event->id);
     if (connections[i]->cm_event_id == event->id) {
       c = connections[i];
       break;
     }
   }
   if (!c) {
-    debug("client not found during disconnect: %p", c);
+    debug("client not found during disconnect: %p\n", c);
     return ret;
   }
   printf("removing client 2\n");
 
   rdma_destroy_qp(c->cm_event_id);
   printf("removing client 3\n");
+
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    return ret;
+  }
+
   ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
     debug("Failed to destroy client id cleanly, %d \n", -errno);
