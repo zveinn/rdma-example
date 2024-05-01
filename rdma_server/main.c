@@ -249,6 +249,10 @@ static int disconnectClient(struct rdma_cm_event *event) {
   int ret = -1;
   connection *c = NULL;
   for (i = 0; i < MaxConnections; i++) {
+    if (connections[i] == 0) {
+      continue;
+    }
+
     if (connections[i]->cm_event_id == event->id) {
       c = connections[i];
     }
