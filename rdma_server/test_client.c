@@ -232,7 +232,6 @@ static int client_connect_to_server() {
  * for the illustration purposes
  */
 static int client_xchange_metadata_with_server() {
-  struct ibv_wc wc[2];
   int ret = -1;
   client_src_mr =
       rdma_buffer_register(pd, src, strlen(src),
@@ -281,6 +280,7 @@ static int client_xchange_metadata_with_server() {
    * send and one for recv that we will get from the server for
    * its buffer information */
   // sleep(5);
+  struct ibv_wc *wc;
   ret = process_work_completion_events(io_completion_channel, wc);
   if (ret != 2) {
     debug("We failed to get work completions , ret = %d \n", ret);
