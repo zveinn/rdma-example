@@ -235,8 +235,8 @@ static int client_xchange_metadata_with_server() {
 
   int ret = -1;
 
-  struct ibv_wc wc[2];
-  ret = process_work_completion_events(io_completion_channel, wc);
+  struct ibv_wc wc3[2];
+  ret = process_work_completion_events(io_completion_channel, wc3);
   if (ret != 1) {
     debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
