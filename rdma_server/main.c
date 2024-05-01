@@ -292,12 +292,6 @@ static int disconnectClient(struct rdma_cm_event *event) {
   printf("removing client %p\n", event->id);
 
   int ret = -1;
-  ret = rdma_ack_cm_event(event);
-  if (ret) {
-    printf("DISCONNECT ACK FAILED %d", ret);
-    return ret;
-  }
-
   pthread_t thread;
   int i;
   for (i = 0; i < MaxConnections; i++) {
@@ -308,11 +302,16 @@ static int disconnectClient(struct rdma_cm_event *event) {
     printf("compare: %p %p\n", connections[i]->cm_event_id, event->id);
     if (connections[i]->cm_event_id == event->id) {
       if (pthread_create(&thread, NULL, removeClient, connections[i]) != 0) {
-        perror("++THREAD(failed)\n");
-        return ErrUnableToCreateThread;
+        // return ErrUnableToCreateThread;
       }
       break;
     }
+  }
+
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    printf("DISCONNECT ACK FAILED %d", ret);
+    return ret;
   }
   return 0;
 }
