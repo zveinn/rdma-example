@@ -210,7 +210,11 @@ int startRDMAServer(char *addr, char *port) {
   while (1) {
     ret = get_rdma_cm_event(EventChannel, &newEvent);
     if (ret) {
-      // debug("GET event errno: %d \n", -errno);
+      debug("GET event errno: %d \n", -errno);
+      continue;
+    }
+    if (!newEvent) {
+      printf("NO EVENT\n");
       continue;
     }
 
