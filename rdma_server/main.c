@@ -79,7 +79,7 @@ static int createQueuePairs(connection *c) {
   c->QP.cap.max_recv_wr = MAX_WR;
   c->QP.cap.max_send_sge = MAX_SGE;
   c->QP.cap.max_send_wr = MAX_WR;
-  c->QP.qp_type = IBV_QPT_UD;
+  c->QP.qp_type = IBV_QPT_RC;
   c->QP.recv_cq = c->CQ;
   c->QP.send_cq = c->CQ;
   ret = rdma_create_qp(c->cm_event_id, c->PD, &c->QP);
@@ -342,7 +342,7 @@ int main(int argc, char **argv) {
     return ErrUnableToCreateEventChannel;
   }
 
-  ret = rdma_create_id(EventChannel, &serverID, NULL, RDMA_PS_UDP);
+  ret = rdma_create_id(EventChannel, &serverID, NULL, RDMA_PS_TCP);
   if (ret) {
     // debug("Creating server cm id failed with errno: %d ", -errno);
     return ErrUnableToCreateServerCMID;
