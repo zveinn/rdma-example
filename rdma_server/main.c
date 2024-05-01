@@ -255,7 +255,7 @@ void *removeClient(void *arg) {
   // printf("removing client last: %p \n", c->cm_event_id);
 
   rdma_destroy_qp(c->cm_event_id);
-  // printf("removing client 3\n");
+  printf("removing client 3\n");
 
   int ret = -1;
   ret = ibv_destroy_cq(c->CQ);
@@ -263,19 +263,19 @@ void *removeClient(void *arg) {
     debug("Failed to destroy completion queue cleanly, %d \n", -errno);
   }
 
-  // printf("removing client 5\n");
+  printf("removing client 5\n");
   ret = ibv_destroy_comp_channel(c->completionChannel);
   if (ret) {
     debug("Failed to destroy completion channel cleanly, %d \n", -errno);
   }
-  // printf("removing client 6\n");
+  printf("removing client 6\n");
 
   rdma_buffer_deregister(c->metaMR);
-  // printf("removing client 7\n");
+  printf("removing client 7\n");
   rdma_buffer_free(c->serverMR);
-  // printf("removing client 8\n");
+  printf("removing client 8\n");
   rdma_buffer_deregister(c->serverMetaMR);
-  // printf("removing client 9\n");
+  printf("removing client 9\n");
 
   ret = ibv_dealloc_pd(c->PD);
   if (ret) {
@@ -293,6 +293,7 @@ static int disconnectClient(struct rdma_cm_event *event) {
   int ret = -1;
   ret = rdma_ack_cm_event(event);
   if (ret) {
+    printf("DISCONNECT ACK FAILED %d", ret);
     return ret;
   }
 
