@@ -243,6 +243,48 @@ void *handle_client(void *arg) {
   return NULL;
 }
 
+static int disconnectClient(struct rdma_cm_event *event) {
+
+  int i;
+  int ret = -1;
+  connection *c = NULL;
+  for (i = 0; i < MaxConnections; i++) {
+    if (connections[i]->cm_event_id == event->id) {
+      c = connections[i];
+    }
+  }
+  if (!c) {
+    debug("client not found during disconnect: %p", event->id);
+    return 1;
+  }
+
+  rdma_destroy_qp(c->cm_event_id);
+  ret = rdma_destroy_id(c->cm_event_id);
+  if (ret) {
+    debug("Failed to destroy client id cleanly, %d \n", -errno);
+  }
+  ret = ibv_destroy_cq(c->CQ);
+  if (ret) {
+    debug("Failed to destroy completion queue cleanly, %d \n", -errno);
+  }
+
+  ret = ibv_destroy_comp_channel(c->completionChannel);
+  if (ret) {
+    debug("Failed to destroy completion channel cleanly, %d \n", -errno);
+  }
+
+  rdma_buffer_deregister(c->metaMR);
+  rdma_buffer_free(c->serverMR);
+  rdma_buffer_deregister(c->serverMetaMR);
+
+  ret = ibv_dealloc_pd(c->PD);
+  if (ret) {
+    debug("Failed to destroy client protection domain cleanly, %d \n", -errno);
+  }
+
+  return 0;
+}
+
 static int connectionEstablished(struct rdma_cm_event *event) {
   pthread_t thread;
   int i;
@@ -400,6 +442,7 @@ int main(int argc, char **argv) {
       connectionEstablished(newEvent);
       break;
     case RDMA_CM_EVENT_DISCONNECTED:
+      disconnectClient(newEvent);
       break;
     case RDMA_CM_EVENT_DEVICE_REMOVAL:
       break;
