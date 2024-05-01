@@ -139,6 +139,7 @@ int process_work_completion_events(struct ibv_comp_channel *comp_channel,
     rdma_error("Failed to get next CQ event due to %d \n", -errno);
     return -errno;
   }
+
   /* Request for more notifications. */
   ret = ibv_req_notify_cq(cq_ptr, 0);
   if (ret) {

@@ -44,7 +44,7 @@ typedef struct {
 } client;
 
 client *clients[10000];
-client *requested_clients[10000];
+client *connections[10000];
 
 static int disconnectServer() {
   int ret = -1;
@@ -390,37 +390,35 @@ static void initializeConnectionRequest(struct rdma_cm_event *event) {
 
   int i;
   for (i = 0; i < 10000; i++) {
-    if (requested_clients[i] == 0) {
+    if (connections[i] == 0) {
       printf("PLACING CLIENT IN INDEX %d \n", i);
-      requested_clients[i] = malloc(sizeof(client));
-      requested_clients[i]->index = i;
-      requested_clients[i]->cm_event_id = event->id;
+      connections[i] = malloc(sizeof(client));
+      connections[i]->index = i;
+      connections[i]->cm_event_id = event->id;
       break;
     }
   }
 
-  ret = setup_client_resources(requested_clients[i]);
+  ret = setup_client_resources(connections[i]);
   if (ret) {
     rdma_error("++RESOURCES, ret = %d \n", ret);
     return;
   }
 
   //
-  ret = register_meta(requested_clients[i]);
+  ret = register_meta(connections[i]);
   if (ret) {
     rdma_error("Failed to handle client cleanly, ret = %d \n", ret);
     return;
   }
 
   // struct sockaddr_in remote_sockaddr;
-  memset(&requested_clients[i]->conn_param, 0,
-         sizeof(requested_clients[i]->conn_param));
+  memset(&connections[i]->conn_param, 0, sizeof(connections[i]->conn_param));
 
-  requested_clients[i]->conn_param.initiator_depth = 3;
-  requested_clients[i]->conn_param.responder_resources = 3;
+  connections[i]->conn_param.initiator_depth = 3;
+  connections[i]->conn_param.responder_resources = 3;
   printf("CALLING ACCEPT \n");
-  ret = rdma_accept(requested_clients[i]->cm_event_id,
-                    &requested_clients[i]->conn_param);
+  ret = rdma_accept(connections[i]->cm_event_id, &connections[i]->conn_param);
   if (ret) {
     rdma_error("++ACCEPT(error), errno: %d \n", -errno);
   }
@@ -429,35 +427,20 @@ static void connectionEstablished(struct rdma_cm_event *event) {
   pthread_t thread;
   int i;
   for (i = 0; i < 10000; i++) {
-    if (requested_clients[i] != 0) {
-      printf("COMPARE: %p == %p\n", requested_clients[i]->cm_event_id,
-             event->id);
+    if (connections[i] != 0) {
+      printf("COMPARE: %p == %p\n", connections[i]->cm_event_id, event->id);
 
-      if (requested_clients[i]->cm_event_id == event->id) {
+      if (connections[i]->cm_event_id == event->id) {
         printf("FOUND IT POINTER!\n");
-        if (pthread_create(&thread, NULL, handle_client,
-                           requested_clients[i]) != 0) {
+        if (pthread_create(&thread, NULL, handle_client, connections[i]) != 0) {
           perror("++THREAD(failed)\n");
           exit(EXIT_FAILURE);
         }
         printf("DONE\n");
         break;
       }
-      // if (requested_clients[i]->cm_event->param.conn.qp_num ==
-      //     event->param.conn.qp_num) {
-      //   printf("FOUND IT!\n");
-      // }
     }
   }
-
-  // for (i = 0; i < 10000; i++) {
-  //   if (clients[i] == 0) {
-  //     clients[i] = malloc(sizeof(client));
-  //     clients[i]->index = i;
-  //     clients[i]->cm_event_id = event->id;
-  //     break;
-  //   }
-  // }
 }
 
 /* Starts an RDMA server by allocating basic connection resources */
