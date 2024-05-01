@@ -250,7 +250,7 @@ static int disconnectClient(struct rdma_cm_event *event) {
     return ret;
   }
 
-  printf("removing client %p\n", event);
+  printf("removing client %p\n", event->id);
   int i;
   connection *c = NULL;
   for (i = 0; i < MaxConnections; i++) {
@@ -258,6 +258,7 @@ static int disconnectClient(struct rdma_cm_event *event) {
       continue;
     }
 
+    printf("compare: %p %p", connections[i]->cm_event_id, event->id);
     if (connections[i]->cm_event_id == event->id) {
       c = connections[i];
       break;
