@@ -265,15 +265,15 @@ static int disconnectClient(struct rdma_cm_event *event) {
     return ret;
   }
   printf("removing client 2\n");
-
-  rdma_destroy_qp(c->cm_event_id);
-  printf("removing client 3\n");
-
+  printf("PRE ACK: %p %p\n", c->cm_event_id, event->id);
   ret = rdma_ack_cm_event(event);
   if (ret) {
     return ret;
   }
-  printf("POST ACK: %p", c->cm_event_id);
+  printf("POST ACK: %p\n", c->cm_event_id);
+
+  rdma_destroy_qp(c->cm_event_id);
+  printf("removing client 3\n");
 
   ret = rdma_destroy_id(c->cm_event_id);
   if (ret) {
