@@ -221,13 +221,7 @@ void *handle_client(void *arg) {
     debug("Failed to send server metadata to the client, ret = %d \n", ret);
     return NULL;
   }
-  //
-  // ret = disconnect_and_cleanup(c);
-  // if (ret) {
-  //   rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
-  //   return NULL;
-  // }
-  //
+
   while (1) {
     printf("CLIENT WORK EVENT POLL+++\n");
     struct ibv_wc wc;
@@ -243,10 +237,66 @@ void *handle_client(void *arg) {
   return NULL;
 }
 
-static int disconnectClient(struct rdma_cm_event *event) {
-  int ret = -1;
+void *removeClient(void *arg) {
+  connection *c = (connection *)arg;
+  if (!c) {
+    debug("client not found during disconnect: %p\n", c);
+    return NULL;
+  }
+  // printf("POST ACK: %p\n", c->cm_event_id);
+  //
+  // THIS DEADLOCKS ... CAN NOT USE IT
+  // ret = rdma_destroy_id(c->cm_event_id);
+  // if (ret) {
+  //   printf("removed\n");
+  //   // debug("Failed to destroy client id cleanly, %d \n", -errno);
+  // }
 
+  // printf("removing client last: %p \n", c->cm_event_id);
+
+  rdma_destroy_qp(c->cm_event_id);
+  // printf("removing client 3\n");
+
+  int ret = -1;
+  ret = ibv_destroy_cq(c->CQ);
+  if (ret) {
+    debug("Failed to destroy completion queue cleanly, %d \n", -errno);
+  }
+
+  // printf("removing client 5\n");
+  ret = ibv_destroy_comp_channel(c->completionChannel);
+  if (ret) {
+    debug("Failed to destroy completion channel cleanly, %d \n", -errno);
+  }
+  // printf("removing client 6\n");
+
+  rdma_buffer_deregister(c->metaMR);
+  // printf("removing client 7\n");
+  rdma_buffer_free(c->serverMR);
+  // printf("removing client 8\n");
+  rdma_buffer_deregister(c->serverMetaMR);
+  // printf("removing client 9\n");
+
+  ret = ibv_dealloc_pd(c->PD);
+  if (ret) {
+    debug("Failed to destroy client protection domain cleanly, %d \n", -errno);
+  }
+
+  printf("--CLIENT: %p\n", c->cm_event_id);
+
+  return NULL;
+}
+
+static int disconnectClient(struct rdma_cm_event *event) {
   printf("removing client %p\n", event->id);
+
+  int ret = -1;
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    return ret;
+  }
+
+  pthread_t thread;
   int i;
   connection *c = NULL;
   for (i = 0; i < MaxConnections; i++) {
@@ -254,58 +304,16 @@ static int disconnectClient(struct rdma_cm_event *event) {
       continue;
     }
 
-    printf("compare: %p %p\n", connections[i]->cm_event_id, event->id);
+    // printf("compare: %p %p\n", connections[i]->cm_event_id, event->id);
     if (connections[i]->cm_event_id == event->id) {
       c = connections[i];
+      if (pthread_create(&thread, NULL, removeClient, connections[i]) != 0) {
+        perror("++THREAD(failed)\n");
+        return ErrUnableToCreateThread;
+      }
       break;
     }
   }
-  if (!c) {
-    debug("client not found during disconnect: %p\n", c);
-    return ret;
-  }
-  printf("removing client 2\n");
-  // printf("PRE ACK: %p %p\n", c->cm_event_id, event->id);
-  // ret = rdma_ack_cm_event(event);
-  // if (ret) {
-  //   return ret;
-  // }
-  // printf("POST ACK: %p\n", c->cm_event_id);
-  ret = rdma_destroy_id(c->cm_event_id);
-  if (ret) {
-    printf("removed\n");
-    // debug("Failed to destroy client id cleanly, %d \n", -errno);
-  }
-  printf("removing client last: %p \n", c->cm_event_id);
-
-  rdma_destroy_qp(c->cm_event_id);
-  printf("removing client 3\n");
-
-  ret = ibv_destroy_cq(c->CQ);
-  if (ret) {
-    debug("Failed to destroy completion queue cleanly, %d \n", -errno);
-  }
-
-  printf("removing client 5\n");
-  ret = ibv_destroy_comp_channel(c->completionChannel);
-  if (ret) {
-    debug("Failed to destroy completion channel cleanly, %d \n", -errno);
-  }
-  printf("removing client 6\n");
-
-  rdma_buffer_deregister(c->metaMR);
-  printf("removing client 7\n");
-  rdma_buffer_free(c->serverMR);
-  printf("removing client 8\n");
-  rdma_buffer_deregister(c->serverMetaMR);
-  printf("removing client 9\n");
-
-  ret = ibv_dealloc_pd(c->PD);
-  if (ret) {
-    debug("Failed to destroy client protection domain cleanly, %d \n", -errno);
-  }
-
-  printf("CLIENT REMOVED!\n");
   return 0;
 }
 
