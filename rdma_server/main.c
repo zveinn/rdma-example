@@ -66,16 +66,54 @@ typedef struct {
 const int MaxConnections = 10000;
 connection *connections[10000];
 
+void *handle_client(void *arg) {
+  // void *handle_client(client *c) {
+  printf("inside thread\n");
+  int ret = -1;
+  connection *c = (connection *)arg;
+  printf("client: id: %p \n", c->cm_event_id);
+
+  // ret = register_meta(c);
+  // if (ret) {
+  //   return NULL;
+  // }
+  struct ibv_wc wc;
+  ret = process_work_completion_events(c->completionChannel, &wc, 1);
+  if (ret != 1) {
+    debug("Failed to receive , ret = %d \n", ret);
+    return NULL;
+  }
+
+  // ret = send_server_metadata_to_client(c);
+  // if (ret) {
+  //   debug("Failed to send server metadata to the client, ret = %d \n", ret);
+  //   return NULL;
+  // }
+  //
+  // ret = disconnect_and_cleanup(c);
+  // if (ret) {
+  //   rdma_error("Failed to clean up resources properly, ret = %d \n", ret);
+  //   return NULL;
+  // }
+  //
+  while (1) {
+    printf("data: %s\n", c->dataBuffer);
+    sleep(1);
+  };
+
+  return NULL;
+}
+
 static int connectionEstablished(struct rdma_cm_event *event) {
   pthread_t thread;
   int i;
   for (i = 0; i < MaxConnections; i++) {
     if (connections[i] != 0) {
-      // printf("COMPARE: %p == %p\n", connections[i]->cm_event_id, event->id);
+      printf("COMPARE: %p == %p\n", connections[i]->cm_event_id, event->id);
       if (connections[i]->cm_event_id == event->id) {
-        // printf("FOUND IT POINTER!\n");
+        printf("FOUND IT POINTER!\n");
         if (pthread_create(&thread, NULL, handle_client, connections[i]) != 0) {
-          // perror("++THREAD(failed)\n");
+          perror("++THREAD(failed)\n");
           return ErrUnableToCreateThread;
         }
         return CodeOK;
@@ -176,6 +214,7 @@ int startRDMAServer(char *addr, char *port) {
       continue;
     }
 
+    printf("++++++EVENT: %d", newEvent->event);
     switch (newEvent->event) {
 
     case RDMA_CM_EVENT_ADDR_RESOLVED:
