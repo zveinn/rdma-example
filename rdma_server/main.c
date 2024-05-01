@@ -244,10 +244,14 @@ void *handle_client(void *arg) {
 }
 
 static int disconnectClient(struct rdma_cm_event *event) {
+  int ret = -1;
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    return ret;
+  }
 
   printf("removing client\n");
   int i;
-  int ret = -1;
   connection *c = NULL;
   for (i = 0; i < MaxConnections; i++) {
     if (connections[i] == 0) {
@@ -300,6 +304,12 @@ static int disconnectClient(struct rdma_cm_event *event) {
 }
 
 static int connectionEstablished(struct rdma_cm_event *event) {
+  int ret = -1;
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    return ret;
+  }
+
   pthread_t thread;
   int i;
   for (i = 0; i < MaxConnections; i++) {
@@ -320,9 +330,14 @@ static int connectionEstablished(struct rdma_cm_event *event) {
 }
 
 static int initializeConnectionRequest(struct rdma_cm_event *event) {
+  int ret = -1;
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    return ret;
+  }
 
-  int i;
   int found = 0;
+  int i;
   for (i = 0; i < MaxConnections; i++) {
     if (connections[i] == 0) {
       // printf("PLACING CLIENT IN INDEX %d \n", i);
@@ -434,24 +449,16 @@ int main(int argc, char **argv) {
     switch (newEvent->event) {
 
     case RDMA_CM_EVENT_ADDR_RESOLVED:
-      break;
     case RDMA_CM_EVENT_ADDR_ERROR:
-      break;
     case RDMA_CM_EVENT_ROUTE_RESOLVED:
-      break;
     case RDMA_CM_EVENT_ROUTE_ERROR:
-      break;
     case RDMA_CM_EVENT_CONNECT_REQUEST:
       initializeConnectionRequest(newEvent);
       break;
     case RDMA_CM_EVENT_CONNECT_RESPONSE:
-      break;
     case RDMA_CM_EVENT_CONNECT_ERROR:
-      break;
     case RDMA_CM_EVENT_UNREACHABLE:
-      break;
     case RDMA_CM_EVENT_REJECTED:
-      break;
     case RDMA_CM_EVENT_ESTABLISHED:
       connectionEstablished(newEvent);
       break;
@@ -459,22 +466,15 @@ int main(int argc, char **argv) {
       disconnectClient(newEvent);
       break;
     case RDMA_CM_EVENT_DEVICE_REMOVAL:
-      break;
     case RDMA_CM_EVENT_MULTICAST_JOIN:
-      break;
     case RDMA_CM_EVENT_MULTICAST_ERROR:
-      break;
     case RDMA_CM_EVENT_ADDR_CHANGE:
-      break;
     case RDMA_CM_EVENT_TIMEWAIT_EXIT:
-
     default:
-      debug("UNKOWN EVENT: %s\n", rdma_event_str(newEvent->event));
-    }
-    ret = rdma_ack_cm_event(newEvent);
-    if (ret) {
-      // debug("ACK event errno: %d \n", -errno);
-      continue;
+      ret = rdma_ack_cm_event(newEvent);
+      if (ret) {
+        continue;
+      }
     }
   }
 
