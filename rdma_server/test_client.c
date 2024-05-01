@@ -268,8 +268,8 @@ static int client_xchange_metadata_with_server() {
   bzero(&client_send_wr, sizeof(client_send_wr));
   client_send_wr.sg_list = &client_send_sge;
   client_send_wr.num_sge = 1;
-  client_send_wr.opcode = IBV_WR_SEND_WITH_IMM;
-  client_send_wr.send_flags = IBV_SEND_SIGNALED;
+  client_send_wr.opcode = IBV_WR_SEND;
+  client_send_wr.send_flags = IBV_SEND_INLINE;
   printf("D4 \n");
   printf("1:%p\n", client_qp);
   printf("2:%p\n", &client_send_wr);
