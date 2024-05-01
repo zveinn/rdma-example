@@ -228,7 +228,7 @@ void *handle_client(void *arg) {
   // }
   //
   while (1) {
-    printf("CLIENT WORK EVENT POLL+++");
+    printf("CLIENT WORK EVENT POLL+++\n");
     struct ibv_wc wc;
     ret = process_work_completion_events(c->completionChannel, &wc);
     if (ret != 1) {
