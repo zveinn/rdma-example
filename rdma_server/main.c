@@ -250,7 +250,7 @@ static int disconnectClient(struct rdma_cm_event *event) {
     return ret;
   }
 
-  printf("removing client\n");
+  printf("removing client %p\n", event);
   int i;
   connection *c = NULL;
   for (i = 0; i < MaxConnections; i++) {
@@ -260,10 +260,11 @@ static int disconnectClient(struct rdma_cm_event *event) {
 
     if (connections[i]->cm_event_id == event->id) {
       c = connections[i];
+      break;
     }
   }
   if (!c) {
-    debug("client not found during disconnect: %p", event->id);
+    debug("client not found during disconnect: %p", c);
     return ret;
   }
   printf("removing client 2\n");
