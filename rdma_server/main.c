@@ -265,8 +265,8 @@ int startRDMAServer(char *addr, char *port) {
 }
 
 int main(int argc, char **argv) {
-  printf("START");
+  printf("START\n");
   int ret = startRDMAServer("15.15.15.2", "22222");
-  printf("EXIT: %d", ret);
+  printf("EXIT: %d\n", ret);
   return 0;
 }
