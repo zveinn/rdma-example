@@ -208,6 +208,7 @@ int startRDMAServer(char *addr, char *port) {
 
   struct rdma_cm_event *newEvent;
   while (1) {
+    printf("WAIT FOR EVENT\n");
     ret = get_rdma_cm_event(EventChannel, &newEvent);
     if (ret) {
       debug("GET event errno: %d \n", -errno);
@@ -270,7 +271,7 @@ int startRDMAServer(char *addr, char *port) {
 
 int main(int argc, char **argv) {
   printf("START\n");
-  int ret = startRDMAServer("15.15.15.2", "22222");
+  int ret = startRDMAServer("15.15.15.2", "11111");
   printf("EXIT: %d\n", ret);
   return 0;
 }
