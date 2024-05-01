@@ -127,7 +127,7 @@ static int connectionEstablished(struct rdma_cm_event *event) {
 static int initializeConnectionRequest(struct rdma_cm_event *event) {
 
   int i;
-  uint8_t found = 0;
+  int found = 0;
   for (i = 0; i < MaxConnections; i++) {
     if (connections[i] != 0) {
       // printf("PLACING CLIENT IN INDEX %d \n", i);
@@ -138,7 +138,7 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
       break;
     }
   }
-  if (found == 0) {
+  if (!found) {
     debug("no connection slots available, %d", found);
     return ErrUnableToTooManyConnections;
   }
