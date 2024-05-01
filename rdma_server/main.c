@@ -304,11 +304,6 @@ static int disconnectClient(struct rdma_cm_event *event) {
 }
 
 static int connectionEstablished(struct rdma_cm_event *event) {
-  int ret = -1;
-  ret = rdma_ack_cm_event(event);
-  if (ret) {
-    return ret;
-  }
 
   pthread_t thread;
   int i;
@@ -326,16 +321,18 @@ static int connectionEstablished(struct rdma_cm_event *event) {
     }
   }
 
-  return ErrUnableToEstablishConnection;
-}
-
-static int initializeConnectionRequest(struct rdma_cm_event *event) {
   int ret = -1;
   ret = rdma_ack_cm_event(event);
   if (ret) {
     return ret;
   }
 
+  return ErrUnableToEstablishConnection;
+}
+
+static int initializeConnectionRequest(struct rdma_cm_event *event) {
+
+  int ret = -1;
   int found = 0;
   int i;
   for (i = 0; i < MaxConnections; i++) {
@@ -370,11 +367,17 @@ static int initializeConnectionRequest(struct rdma_cm_event *event) {
   connections[i]->conn_param.initiator_depth = 3;
   connections[i]->conn_param.responder_resources = 3;
   printf("CALLING ACCEPT \n");
+  ret = rdma_ack_cm_event(event);
+  if (ret) {
+    return ret;
+  }
+
   ret = rdma_accept(connections[i]->cm_event_id, &connections[i]->conn_param);
   if (ret) {
     return ErrUnableToAcceptConnection;
     // debug("++ACCEPT(error), errno: %d \n", -errno);
   }
+
   return CodeOK;
 }
 
