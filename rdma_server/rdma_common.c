@@ -143,6 +143,7 @@ uint32_t pollEventChannel(
     }
 
     ret = poll(&pfd, 1, -1);
+    printf("done polling: %d", ret);
     if (ret == -1) {
       return makeError(ret, ErrUnableToPollEventChannelFD, 0, 0);
     } else if (ret == 0) {
