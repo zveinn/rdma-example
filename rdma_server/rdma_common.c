@@ -142,36 +142,29 @@ uint32_t pollEventChannel(
       return 0;
     }
 
-    // ret = poll(&pfd, 1, -1);
-    // if (ret == -1) {
-    //   return makeError(ret, ErrUnableToPollEventChannelFD, 0, 0);
-    // } else if (ret == 0) {
-    //   //
-    // } else if (pfd.revents & POLLIN) {
     ret = rdma_get_cm_event(channel, event);
     printf("done polling: %d\n", ret);
     if (ret) {
-      return makeError(ret, ErrUnableToGetFromEventChannel, 0, 0);
+      continue;
     }
-    // }
   }
   printf("outside of loop\n");
 
   if ((*event)->status != expectedStatus) {
     debug("??EVENT(invalid status): %d\n", (*event)->status);
     ret = -((*event)->status);
-    uint8_t ackRet = rdma_ack_cm_event(*event);
+    int8_t ackRet = rdma_ack_cm_event(*event);
     return makeError(ret, ErrUnexpectedEventStatus, ackRet, 0);
   }
 
   printf("outside of loop 3\n");
   if ((*event)->event != type) {
-    uint8_t ackRet = rdma_ack_cm_event(*event);
+    int8_t ackRet = rdma_ack_cm_event(*event);
     return makeError(ret, ErrUnexpectedEventType, ackRet, 0);
   }
 
   printf("outside of loop 4\n");
-  uint8_t ackRet = rdma_ack_cm_event(*event);
+  int8_t ackRet = rdma_ack_cm_event(*event);
   if (ackRet) {
     return makeError(ret, ErrUnableToAckEvent, ackRet, 0);
   }
