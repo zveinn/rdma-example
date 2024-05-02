@@ -1,3 +1,4 @@
+#include "custom_error.h"
 #include "rdma_common.h"
 #include <pthread.h>
 #include <stdint.h>
@@ -10,27 +11,6 @@ void usage() {
   printf("(default port is %d)\n", DEFAULT_RDMA_PORT);
   exit(1);
 }
-const int ListenerBacklog = 20;
-
-const int ErrNone = 0;
-const int ErrInvalidServerIP = 1;
-const int ErrUnableToCreateEventChannel = 2;
-const int ErrUnableToCreateServerCMID = 3;
-const int ErrUnableToBindToAddress = 4;
-const int ErrUnableToListenOnAddress = 5;
-const int ErrUnableToTooManyConnections = 6;
-const int ErrUnableToEstablishConnection = 7;
-const int ErrUnableToAcceptConnection = 8;
-const int ErrUnableToAllocatePD = 9;
-const int ErrUnableToCreateCompletionChannel = 10;
-const int ErrUnableToCreateCompletionQueue = 11;
-const int ErrUnableToRegisterCQNotifications = 12;
-const int ErrUnableToCreateQueuePairs = 13;
-
-const int ErrUnableToCreateThread = 99;
-
-const int CodeOK = 100;
-
 // RDMA CONSTANTS
 static struct rdma_event_channel *EventChannel = NULL;
 static struct rdma_cm_id *serverID = NULL;
@@ -128,8 +108,7 @@ static int setup_client_resources(connection *c) {
 static int registerServerMetadataBuffer(connection *c) {
   int ret = -1;
 
-  c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr, sizeof(c->metaAttr),
-                                   (IBV_ACCESS_LOCAL_WRITE));
+  c->metaMR = rdma_buffer_register(c->PD, &c->metaAttr, sizeof(c->metaAttr), (IBV_ACCESS_LOCAL_WRITE));
   if (!c->metaMR) {
     debug("++CLIENT_MR(error)\n");
     return -ENOMEM;
@@ -457,6 +436,7 @@ int main(int argc, char **argv) {
       debug("GET event errno: %d \n", -errno);
       continue;
     }
+
     if (!newEvent) {
       printf("NO EVENT\n");
       continue;

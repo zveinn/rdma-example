@@ -40,7 +40,7 @@
 #endif
 
 /* Error Macro*/
-#define debug(msg, args...)                                                    \
+#define debug(msg, args...) \
   fprintf(stdout, "%s: %d|| " msg, __FILE__, __LINE__, ##args);
 
 /* Debug Macro */
@@ -141,5 +141,15 @@ int process_work_completion_events(struct ibv_comp_channel *comp_channel,
 
 /* prints some details from the cm id */
 void show_rdma_cmid(struct rdma_cm_id *id);
+
+/* NEW STUFF */
+/* NEW STUFF */
+/* NEW STUFF */
+uint32_t pollEventChannel(
+    struct rdma_event_channel *channel,
+    enum rdma_cm_event_type type,
+    int expectedStatus,
+    int timeout,
+    struct rdma_cm_event **event);
 
 #endif /* RDMA_COMMON_H */

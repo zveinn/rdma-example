@@ -6,6 +6,10 @@
  */
 
 #include "rdma_common.h"
+#include "custom_error.h"
+#include <stdint.h>
+#include <sys/poll.h>
+#include <time.h>
 
 void show_rdma_cmid(struct rdma_cm_id *id) {
   if (!id) {
@@ -118,14 +122,75 @@ int get_rdma_cm_event(struct rdma_event_channel *echannel,
   return ret;
 }
 
-int process_rdma_cm_event(struct rdma_event_channel *echannel,
-                          enum rdma_cm_event_type expected_event,
-                          struct rdma_cm_event **cm_event) {
+uint32_t pollEventChannel(
+    struct rdma_event_channel *channel,
+    enum rdma_cm_event_type type,
+    int expectedStatus,
+    int timeout,
+    struct rdma_cm_event **event) {
+
+  int8_t ret = 0;
+  struct timespec start_time;
+  struct timespec loop_time;
+  clock_gettime(CLOCK_REALTIME, &start_time);
+
+  struct pollfd pfd = {.fd = channel->fd, .events = POLLIN};
+
+  while (1) {
+    clock_gettime(CLOCK_REALTIME, &loop_time);
+    if (timestampDiff(&loop_time, &start_time) > timeout) {
+      return 0;
+    }
+
+    ret = poll(&pfd, 1, -1);
+    if (ret == -1) {
+      return makeError(ret, ErrUnableToPollEventChannelFD, 0, 0);
+    } else if (ret == 0) {
+      debug("Timeout waiting for RDMA event\n");
+      return 0;
+    } else if (pfd.revents & POLLIN) {
+      ret = rdma_get_cm_event(channel, event);
+      if (ret) {
+        return makeError(ret, ErrUnableToGetFromEventChannel, 0, 0);
+      }
+    }
+  }
+
+  if ((*event)->status != expectedStatus) {
+    debug("??EVENT(invalid status): %d\n", (*event)->status);
+    ret = -((*event)->status);
+    uint8_t ackRet = rdma_ack_cm_event(*event);
+    return makeError(ret, ErrUnexpectedEventStatus, ackRet, 0);
+  }
+
+  if ((*event)->event != type) {
+    uint8_t ackRet = rdma_ack_cm_event(*event);
+    return makeError(ret, ErrUnexpectedEventType, ackRet, 0);
+  }
+
+  uint8_t ackRet = rdma_ack_cm_event(*event);
+  if (ackRet) {
+    return makeError(ret, ErrUnableToAckEvent, ackRet, 0);
+  }
+  //
+  debug("++EVENT(%s) \n", rdma_event_str((*event)->event));
+
+  // debug("++EVENT(ID) %p \n", (*cm_event)->id->event->id);
+  debug("++EVENT(ID) %p \n", (*event)->id);
+  debug("++EVENT(ID) %d \n", (*event)->id->port_num);
+  debug("++EVENT(ID) %d \n", (*event)->param.conn.qp_num);
+  debug("++EVENT(ID) %d \n", (*event)->param.ud.qp_num);
+  return ret;
+
+  return 0;
+}
+
+int process_rdma_cm_event(struct rdma_event_channel *echannel, enum rdma_cm_event_type expected_event, struct rdma_cm_event **cm_event) {
   int ret = 1;
   ret = rdma_get_cm_event(echannel, cm_event);
   if (ret) {
     debug("++EVENT(no event), errno: %d \n", -errno);
-    return -errno;
+    return ret;
   }
   debug("++EVENT(%s) \n", rdma_event_str((*cm_event)->event));
 
