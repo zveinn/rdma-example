@@ -29,7 +29,7 @@ link_libraries(pthread ${IBVERBS_LIBRARY} ${RDMACM_LIBRARY})
 
 include_directories("${PROJECT_SOURCE_DIR}")
 
-add_executable(server ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/main.c)
-add_executable(client ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/test_client.c)
+add_executable(server ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/custom_error.c  ${PROJECT_SOURCE_DIR}/main.c)
+add_executable(client ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/custom_error.c ${PROJECT_SOURCE_DIR}/test_client.c)
 # add_executable(rdma_client ${PROJECT_SOURCE_DIR}/rdma_common.c ${PROJECT_SOURCE_DIR}/rdma_client.c)
 
