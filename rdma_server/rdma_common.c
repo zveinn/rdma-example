@@ -136,48 +136,43 @@ uint32_t pollEventChannel(
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
     uint64_t diff = timestampDiff(&loop_time, &start_time);
-    // debug("diff: %lu\n", diff);
     if (diff > timeout) {
-      debug("Timeout waiting for RDMA event\n");
       return 0;
     }
 
     ret = rdma_get_cm_event(channel, event);
-    printf("done polling: %d\n", ret);
     if (ret) {
       continue;
     } else {
       break;
     }
   }
-  printf("outside of loop\n");
 
   if ((*event)->status != expectedStatus) {
-    debug("??EVENT(invalid status): %d\n", (*event)->status);
     ret = -((*event)->status);
     int8_t ackRet = rdma_ack_cm_event(*event);
     return makeError(ret, ErrUnexpectedEventStatus, ackRet, 0);
   }
 
-  printf("outside of loop 3\n");
   if ((*event)->event != type) {
     int8_t ackRet = rdma_ack_cm_event(*event);
     return makeError(ret, ErrUnexpectedEventType, ackRet, 0);
   }
 
-  printf("outside of loop 4\n");
   int8_t ackRet = rdma_ack_cm_event(*event);
   if (ackRet) {
     return makeError(ret, ErrUnableToAckEvent, ackRet, 0);
   }
   //
   debug("++EVENT(%s) \n", rdma_event_str((*event)->event));
-
   // debug("++EVENT(ID) %p \n", (*cm_event)->id->event->id);
   debug("++EVENT(ID) %p \n", (*event)->id);
-  debug("++EVENT(ID) %d \n", (*event)->id->port_num);
-  debug("++EVENT(ID) %d \n", (*event)->param.conn.qp_num);
-  debug("++EVENT(ID) %d \n", (*event)->param.ud.qp_num);
+  debug("++EVENT(connQPN) %d \n", (*event)->param.conn.qp_num);
+  debug("++EVENT(udQPN) %d \n", (*event)->param.ud.qp_num);
+  if ((*event)->id) {
+    debug("++EVENT(PortNum) %d \n", (*event)->id->port_num);
+  }
+
   return ret;
 
   return 0;
