@@ -5,8 +5,6 @@
  */
 
 #include "rdma_common.h"
-#include <stdint.h>
-#include <stdio.h>
 
 /* These are basic RDMA resources */
 /* These are RDMA connection related resources */

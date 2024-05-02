@@ -6,10 +6,6 @@
  */
 
 #include "rdma_common.h"
-#include "custom_error.h"
-#include <stdint.h>
-#include <sys/poll.h>
-#include <time.h>
 
 void show_rdma_cmid(struct rdma_cm_id *id) {
   if (!id) {

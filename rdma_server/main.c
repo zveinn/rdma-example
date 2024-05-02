@@ -1,9 +1,4 @@
-#include "custom_error.h"
 #include "rdma_common.h"
-#include <pthread.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <unistd.h>
 
 void usage() {
   printf("Usage:\n");
