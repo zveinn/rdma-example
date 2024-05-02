@@ -48,16 +48,14 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
    * an RDMA address.  If successful, the specified rdma_cm_id will be bound
    * to a local device. */
 
-  int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
-  if (flags == -1) {
-    printf("ERROR SETTING NONBLOCK: %d\n", ret);
-    // return makeError(flags, ErrUnableToGetEventChannelFlags, 0, 0);
-  }
-  ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
-  if (ret == -1) {
-    printf("ERROR SETTING NONBLOCK2: %d\n", ret);
-    // return makeError(ret, ErrUnableToSetEventChannelToNoneBlocking, 0, 0);
-  }
+  // int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
+  // if (flags == -1) {
+  //   printf("ERROR SETTING NONBLOCK: %d\n", ret);
+  // }
+  // ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
+  // if (ret == -1) {
+  //   printf("ERROR SETTING NONBLOCK2: %d\n", ret);
+  // }
   ret = rdma_resolve_addr(cm_client_id, NULL, (struct sockaddr *)s_addr, 2000);
   if (ret) {
     debug("Failed to resolve address, errno: %d \n", -errno);
