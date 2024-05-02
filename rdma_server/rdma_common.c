@@ -149,10 +149,10 @@ uint32_t pollEventChannel(
     //   //
     // } else if (pfd.revents & POLLIN) {
     ret = rdma_get_cm_event(channel, event);
+    printf("done polling: %d\n", ret);
     if (ret) {
       return makeError(ret, ErrUnableToGetFromEventChannel, 0, 0);
     }
-    printf("done polling: %d\n", ret);
     // }
   }
 
