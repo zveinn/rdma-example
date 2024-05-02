@@ -20,10 +20,13 @@
 
 #include "custom_error.h"
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/poll.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <time.h>
 
