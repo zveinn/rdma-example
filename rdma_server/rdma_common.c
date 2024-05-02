@@ -155,6 +155,7 @@ uint32_t pollEventChannel(
     }
     // }
   }
+  printf("outside of loop\n");
 
   if ((*event)->status != expectedStatus) {
     debug("??EVENT(invalid status): %d\n", (*event)->status);
@@ -163,11 +164,13 @@ uint32_t pollEventChannel(
     return makeError(ret, ErrUnexpectedEventStatus, ackRet, 0);
   }
 
+  printf("outside of loop 3\n");
   if ((*event)->event != type) {
     uint8_t ackRet = rdma_ack_cm_event(*event);
     return makeError(ret, ErrUnexpectedEventType, ackRet, 0);
   }
 
+  printf("outside of loop 4\n");
   uint8_t ackRet = rdma_ack_cm_event(*event);
   if (ackRet) {
     return makeError(ret, ErrUnableToAckEvent, ackRet, 0);
