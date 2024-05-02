@@ -6,6 +6,7 @@
  */
 
 #include "rdma_common.h"
+#include <stdint.h>
 
 void show_rdma_cmid(struct rdma_cm_id *id) {
   if (!id) {
@@ -134,7 +135,9 @@ uint32_t pollEventChannel(
 
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
-    if (timestampDiff(&loop_time, &start_time) > timeout) {
+    uint64_t diff = timestampDiff(&loop_time, &start_time);
+    debug("diff: %lu\n", diff);
+    if (diff > timeout) {
       debug("Timeout waiting for RDMA event\n");
       return 0;
     }
