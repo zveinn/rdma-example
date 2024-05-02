@@ -262,3 +262,30 @@ int get_addr(char *dst, struct sockaddr *addr) {
   freeaddrinfo(res);
   return ret;
 }
+
+uint32_t makeError(int8_t funcCode, int8_t minioCode, int8_t extra1, int8_t extra2) {
+  uint8_t uint8_data1 = funcCode & 0xFF;
+  uint8_t uint8_data2 = minioCode & 0xFF;
+  uint8_t uint8_data3 = extra1 & 0xFF;
+  uint8_t uint8_data4 = extra2 & 0xFF;
+
+  return (uint8_data4 << 24) | (uint8_data3 << 16) | (uint8_data2 << 8) | uint8_data1;
+}
+
+uint64_t timestampDiff(struct timespec *t1, struct timespec *t2) {
+  uint64_t difference_ms;
+
+  difference_ms = (t1->tv_sec - t2->tv_sec) * 1000;
+
+  // Calculate difference in nanoseconds (considering overflow)
+  if (t1->tv_nsec >= t2->tv_nsec) {
+    difference_ms += (t1->tv_nsec - t2->tv_nsec) / 1000000;
+  } else {
+    // Handle potential overflow (t2 might be larger)
+    difference_ms += ((t1->tv_nsec + 1000000000) - t2->tv_nsec) / 1000000;
+    difference_ms--; // Adjust for the borrowed second
+  }
+
+  printf("loop diff: %lu", difference_ms);
+  return difference_ms;
+}
