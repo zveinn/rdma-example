@@ -135,6 +135,7 @@ uint32_t pollEventChannel(
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
     if (timestampDiff(&loop_time, &start_time) > timeout) {
+      debug("Timeout waiting for RDMA event\n");
       return 0;
     }
 
@@ -142,8 +143,7 @@ uint32_t pollEventChannel(
     if (ret == -1) {
       return makeError(ret, ErrUnableToPollEventChannelFD, 0, 0);
     } else if (ret == 0) {
-      debug("Timeout waiting for RDMA event\n");
-      return 0;
+      //
     } else if (pfd.revents & POLLIN) {
       ret = rdma_get_cm_event(channel, event);
       if (ret) {
