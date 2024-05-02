@@ -6,6 +6,7 @@
  */
 
 #include "rdma_common.h"
+#include "custom_error.h"
 
 void show_rdma_cmid(struct rdma_cm_id *id) {
   if (!id) {
