@@ -1,11 +1,5 @@
 #include "custom_error.h"
 #include "rdma_common.h"
-#include <fcntl.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <sys/poll.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 
 // NOTES
 // -- WE CAN REGISTER MANY BUFFERS IN ONE SEND USING THE SGE LIST.

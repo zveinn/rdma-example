@@ -1,3 +1,4 @@
+#include "custom_error.h"
 #include "rdma_common.h"
 
 void usage() {

@@ -18,7 +18,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "custom_error.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
