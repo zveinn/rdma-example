@@ -1,10 +1,3 @@
-/*
- * An example RDMA client side code.
- * Author: Animesh Trivedi
- *         atrivedi@apache.org
- */
-
-// #include "custom_error.h"
 #include "rdma_common.h"
 
 /* These are basic RDMA resources */
