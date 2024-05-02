@@ -50,10 +50,12 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
 
   int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
   if (flags == -1) {
+    printf("ERROR SETTING NONBLOCK: %d\n", ret);
     // return makeError(flags, ErrUnableToGetEventChannelFlags, 0, 0);
   }
   ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
   if (ret == -1) {
+    printf("ERROR SETTING NONBLOCK2: %d\n", ret);
     // return makeError(ret, ErrUnableToSetEventChannelToNoneBlocking, 0, 0);
   }
   ret = rdma_resolve_addr(cm_client_id, NULL, (struct sockaddr *)s_addr, 2000);

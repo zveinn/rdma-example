@@ -131,7 +131,7 @@ uint32_t pollEventChannel(
   struct timespec loop_time;
   clock_gettime(CLOCK_REALTIME, &start_time);
 
-  struct pollfd pfd = {.fd = channel->fd, .events = POLLIN};
+  // struct pollfd pfd = {.fd = channel->fd, .events = POLLIN};
 
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
@@ -142,18 +142,18 @@ uint32_t pollEventChannel(
       return 0;
     }
 
-    ret = poll(&pfd, 1, -1);
-    printf("done polling: %d", ret);
-    if (ret == -1) {
-      return makeError(ret, ErrUnableToPollEventChannelFD, 0, 0);
-    } else if (ret == 0) {
-      //
-    } else if (pfd.revents & POLLIN) {
-      ret = rdma_get_cm_event(channel, event);
-      if (ret) {
-        return makeError(ret, ErrUnableToGetFromEventChannel, 0, 0);
-      }
+    // ret = poll(&pfd, 1, -1);
+    // if (ret == -1) {
+    //   return makeError(ret, ErrUnableToPollEventChannelFD, 0, 0);
+    // } else if (ret == 0) {
+    //   //
+    // } else if (pfd.revents & POLLIN) {
+    ret = rdma_get_cm_event(channel, event);
+    if (ret) {
+      return makeError(ret, ErrUnableToGetFromEventChannel, 0, 0);
     }
+    printf("done polling: %d\n", ret);
+    // }
   }
 
   if ((*event)->status != expectedStatus) {
