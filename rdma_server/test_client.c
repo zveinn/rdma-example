@@ -47,41 +47,42 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
   /* Resolve destination and optional source addresses from IP addresses  to
    * an RDMA address.  If successful, the specified rdma_cm_id will be bound
    * to a local device. */
-
-  // int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
-  // if (flags == -1) {
-  //   printf("ERROR SETTING NONBLOCK: %d\n", ret);
-  // }
-  // ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
-  // if (ret == -1) {
-  //   printf("ERROR SETTING NONBLOCK2: %d\n", ret);
-  // }
   ret = rdma_resolve_addr(cm_client_id, NULL, (struct sockaddr *)s_addr, 2000);
   if (ret) {
     debug("Failed to resolve address, errno: %d \n", -errno);
     return -errno;
   }
   debug("waiting for cm event: RDMA_CM_EVENT_ADDR_RESOLVED\n");
-  // uint32_t retPoll = pollEventChannel(
-  //     cm_event_channel,
-  //     RDMA_CM_EVENT_ADDR_RESOLVED,
-  //     0,
-  //     1000,
-  //     &cm_event);
 
-  ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ADDR_RESOLVED,
-                              &cm_event);
-  if (ret) {
-    debug("Failed to receive a valid event, ret = %d \n", ret);
-    return ret;
+  int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
+  if (flags == -1) {
+    printf("ERROR SETTING NONBLOCK: %d\n", ret);
   }
-  /* we ack the event */
-  ret = rdma_ack_cm_event(cm_event);
-  if (ret) {
-    debug("Failed to acknowledge the CM event, errno: %d\n", -errno);
-    return -errno;
+  ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
+  if (ret == -1) {
+    printf("ERROR SETTING NONBLOCK2: %d\n", ret);
   }
-  debug("RDMA address is resolved \n");
+  uint32_t retPoll = pollEventChannel(
+      cm_event_channel,
+      RDMA_CM_EVENT_ADDR_RESOLVED,
+      0,
+      3000,
+      &cm_event);
+
+  // ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ADDR_RESOLVED,
+  //                             &cm_event);
+  // if (ret) {
+  //   debug("Failed to receive a valid event, ret = %d \n", ret);
+  //   return ret;
+  // }
+  //
+  // /* we ack the event */
+  // ret = rdma_ack_cm_event(cm_event);
+  // if (ret) {
+  //   debug("Failed to acknowledge the CM event, errno: %d\n", -errno);
+  //   return -errno;
+  // }
+  // debug("RDMA address is resolved \n");
 
   /* Resolves an RDMA route to the destination address in order to
    * establish a connection */

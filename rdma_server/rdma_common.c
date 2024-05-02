@@ -136,7 +136,7 @@ uint32_t pollEventChannel(
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
     uint64_t diff = timestampDiff(&loop_time, &start_time);
-    debug("diff: %lu\n", diff);
+    // debug("diff: %lu\n", diff);
     if (diff > timeout) {
       debug("Timeout waiting for RDMA event\n");
       return 0;
@@ -146,6 +146,8 @@ uint32_t pollEventChannel(
     printf("done polling: %d\n", ret);
     if (ret) {
       continue;
+    } else {
+      break;
     }
   }
   printf("outside of loop\n");
