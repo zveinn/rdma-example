@@ -131,8 +131,7 @@ uint32_t pollEventChannel(
   struct timespec loop_time;
   clock_gettime(CLOCK_REALTIME, &start_time);
 
-  // struct pollfd pfd = {.fd = channel->fd, .events = POLLIN};
-
+  // TODO .. DO WE YIELD HERE ???
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
     uint64_t diff = timestampDiff(&loop_time, &start_time);
@@ -143,6 +142,7 @@ uint32_t pollEventChannel(
     ret = rdma_get_cm_event(channel, event);
     if (ret) {
       continue;
+      sched_yield();
     } else {
       break;
     }
@@ -282,6 +282,5 @@ uint64_t timestampDiff(struct timespec *t1, struct timespec *t2) {
     difference_ms--; // Adjust for the borrowed second
   }
 
-  printf("loop diff: %lu", difference_ms);
   return difference_ms;
 }
