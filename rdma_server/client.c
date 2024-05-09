@@ -498,7 +498,7 @@ uint32_t WriteToRemoteBuffer(int clientIndex) {
 int main() {
 
   // char *src = calloc(2000, 1);
-  char *src = "01234567890123456789012345678901234567890123456789";
+  char *src = "helloworld";
   printf("BuFFER: %p\n", src);
   // printf("BuFFER: %p\n", &src);
 
