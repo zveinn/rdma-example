@@ -1,5 +1,6 @@
 #include "rdma_common.h"
 #include <stdint.h>
+#include <sys/socket.h>
 
 // NOTES
 // -- WE CAN REGISTER MANY BUFFERS IN ONE SEND USING THE SGE LIST.
@@ -84,21 +85,20 @@ uint32_t createClient(
     enum rdma_port_space port_space) {
 
   clients[clientIndex] = malloc(sizeof(client));
+  client *c = clients[clientIndex];
   clients[clientIndex]->port_space = port_space;
   // clients[clientIndex]->addr = addr;
   clients[clientIndex]->addr_resolve_timeout = addr_resolve_timeout;
   clients[clientIndex]->route_resolve_timeout = route_resolve_timeout;
   clients[clientIndex]->port_space = port_space;
 
-  struct sockaddr_in server_sockaddr;
-  bzero(&server_sockaddr, sizeof server_sockaddr);
-  server_sockaddr.sin_family = AF_INET;
-  server_sockaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  bzero(&c->addr, sizeof c->addr);
+  c->addr.sin_family = AF_INET;
+  c->addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
   int ret;
-  ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
+  ret = get_addr(addr, (struct sockaddr *)&c->addr);
   printf("ADDR RET: %d", ret);
-  server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
-  clients[clientIndex]->addr = server_sockaddr;
+  c->addr.sin_port = htons(strtol(port, NULL, 0));
 
   return 0;
 }
