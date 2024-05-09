@@ -1,5 +1,6 @@
 #include "rdma_common.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/socket.h>
 
 // NOTES
@@ -110,6 +111,7 @@ uint32_t getClient(int clientIndex, client *client) {
   if (clientIndex > MaxClients) {
     return makeError(0, ErrClientIndexOutOfBounds, clientIndex, 0);
   }
+  printf("here\n");
   client = clients[clientIndex];
   if (!client) {
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
