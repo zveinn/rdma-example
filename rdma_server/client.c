@@ -404,9 +404,9 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
   }
 
   printf("1\n");
-  c->LocalMetaAttributes.address = (uint64_t)c->LocalMetaMR->addr;
-  c->LocalMetaAttributes.length = (uint64_t)c->LocalMetaMR->length;
-  c->LocalMetaAttributes.stag.local_stag = (uint64_t)c->LocalMetaMR->lkey;
+  c->LocalMetaAttributes.address = (uint64_t)c->LocalSourceMR->addr;
+  c->LocalMetaAttributes.length = (uint64_t)c->LocalSourceMR->length;
+  c->LocalMetaAttributes.stag.local_stag = (uint64_t)c->LocalSourceMR->lkey;
 
   printf("2\n");
   c->LocalMetaMR = rdma_buffer_register(c->ProtectedDomain, &c->LocalMetaAttributes, sizeof(c->LocalMetaAttributes), (IBV_ACCESS_LOCAL_WRITE));
