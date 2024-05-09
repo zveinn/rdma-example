@@ -579,13 +579,13 @@ int main() {
     return ret;
   }
 
-  printf("WAIT2....\n");
-  ret = process_work_completion_events(c->CompletionChannel, wc);
-  if (ret != 1) {
-    printf("FAILED2\n");
-    return ret;
-  }
-  printf("NAILED IT: 0x%X\n", ret);
+  // printf("WAIT2....\n");
+  // ret = process_work_completion_events(c->CompletionChannel, wc);
+  // if (ret != 1) {
+  //   printf("FAILED2\n");
+  //   return ret;
+  // }
+  // printf("NAILED IT: 0x%X\n", ret);
   //
   // ret = process_work_completion_events(c->CompletionChannel, wc);
   // if (ret != 1) {
