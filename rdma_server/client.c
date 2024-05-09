@@ -139,6 +139,7 @@ uint32_t createEventChannel(int clientIndex) {
   if (cErr) {
     return cErr;
   }
+  printf("client: %d", c->port_space);
 
   c->EventChannel = rdma_create_event_channel();
   if (!c->EventChannel) {
