@@ -54,7 +54,8 @@ typedef struct {
   int MaxSendWR;
   struct ibv_comp_channel *CompletionChannel;
   struct ibv_cq *CompletionQueue;
-  struct ibv_qp_init_attr QueuePairs;
+  struct ibv_qp_init_attr QueuePairAttr;
+  struct ibv_qp *QueuePairs;
   // IBV_QPT_RC
   enum ibv_qp_type QueuePairType;
 
@@ -310,20 +311,21 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
     return cErr;
   }
 
-  bzero(&c->QueuePairs, sizeof c->QueuePairs);
-  c->QueuePairs.cap.max_recv_sge = c->MaxReceiveSGE;
-  c->QueuePairs.cap.max_recv_wr = c->MaxReceiveWR;
-  c->QueuePairs.cap.max_send_sge = c->MaxSendSGE;
-  c->QueuePairs.cap.max_send_wr = c->MaxSendWR;
-  c->QueuePairs.qp_type = c->QueuePairType;
-  c->QueuePairs.recv_cq = c->CompletionQueue;
-  c->QueuePairs.send_cq = c->CompletionQueue;
+  bzero(&c->QueuePairAttr, sizeof c->QueuePairAttr);
+  c->QueuePairAttr.cap.max_recv_sge = c->MaxReceiveSGE;
+  c->QueuePairAttr.cap.max_recv_wr = c->MaxReceiveWR;
+  c->QueuePairAttr.cap.max_send_sge = c->MaxSendSGE;
+  c->QueuePairAttr.cap.max_send_wr = c->MaxSendWR;
+  c->QueuePairAttr.qp_type = c->QueuePairType;
+  c->QueuePairAttr.recv_cq = c->CompletionQueue;
+  c->QueuePairAttr.send_cq = c->CompletionQueue;
   int8_t ret = rdma_create_qp(c->CMID,
                               c->ProtectedDomain,
-                              &c->QueuePairs);
+                              &c->QueuePairAttr);
   if (ret) {
     return makeError(0, ErrUnableToCreateQueuePairs, 0, 0);
   }
+  c->QueuePairs = c->CMID->qp;
 
   return 0;
 }
@@ -387,7 +389,6 @@ uint32_t RDMAConnect(int clientIndex) {
 }
 
 uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
-  sleep(3);
   client *c = NULL;
   uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
@@ -437,7 +438,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
   c->LocalSendWR.send_flags = IBV_SEND_SIGNALED;
 
   printf("5\n");
-  int ret = ibv_post_send(c->CMID->qp, &c->LocalSendWR, &c->BadLocalSendWR);
+  int ret = ibv_post_send(c->QueuePairs, &c->LocalSendWR, &c->BadLocalSendWR);
   if (ret) {
     return makeError(ret, 0255, 0, 0);
   }
@@ -567,7 +568,7 @@ int main() {
   ret = RegisterLocalBufferAtRemoteServer(1, &src);
   printf("16: 0x%X\n", ret);
 
-  struct ibv_wc wc[1];
+  struct ibv_wc wc[2];
   printf("CC %p\n", c->CompletionChannel);
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
