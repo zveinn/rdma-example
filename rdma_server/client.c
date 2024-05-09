@@ -134,14 +134,14 @@ uint32_t deleteClient(int clientIndex) {
 }
 
 uint32_t createEventChannel(int clientIndex) {
-  client *c;
-  uint32_t cErr = getClient(clientIndex, c);
+  client c;
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
 
-  c->EventChannel = rdma_create_event_channel();
-  if (!c->EventChannel) {
+  c.EventChannel = rdma_create_event_channel();
+  if (!c.EventChannel) {
     return makeError(0, ErrUnableToCreateEventChannel, 0, 0);
   }
 
