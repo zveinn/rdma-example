@@ -582,6 +582,7 @@ int main() {
     printf("FAILED1\n");
     return ret;
   }
+  show_rdma_buffer_attr(&c->RemoteMetaAttributes);
 
   printf("WAIT2....\n");
   ret = process_work_completion_events(c->CompletionChannel, wc);
@@ -589,6 +590,7 @@ int main() {
     printf("FAILED2\n");
     return ret;
   }
+  show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   // printf("NAILED IT: 0x%X\n", ret);
 
   printf("18: 0x%X\n", ret);
