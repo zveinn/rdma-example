@@ -186,6 +186,14 @@ void *handle_client(void *arg) {
   connection *c = (connection *)arg;
   printf("client: id: %p \n", c->cm_event_id);
 
+  printf("WAITING FOR CLIENT...\n");
+  struct ibv_wc wc;
+  ret = process_work_completion_events(c->completionChannel, &wc);
+  if (ret != 1) {
+    debug("Failed to receive , ret = %d \n", ret);
+    // return NULL;
+  }
+
   ret = send_server_metadata_to_client(c);
   if (ret) {
     debug("Failed to send server metadata to the client, ret = %d \n", ret);
