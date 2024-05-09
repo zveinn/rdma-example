@@ -599,6 +599,7 @@ int main() {
   printf("19: 0x%X\n", ret);
 
   while (1) {
+    show_rdma_buffer_attr(&c->RemoteMetaAttributes);
     printf("MADE IT!\n");
     sleep(1);
   }
