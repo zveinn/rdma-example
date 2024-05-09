@@ -135,7 +135,7 @@ uint32_t deleteClient(int clientIndex) {
 }
 
 uint32_t createEventChannel(int clientIndex) {
-  client *c;
+  client *c = NULL;
   uint32_t cErr = getClient(clientIndex, c);
   if (cErr) {
     return cErr;
