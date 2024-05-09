@@ -111,10 +111,8 @@ uint32_t getClient(int clientIndex, client **client) {
   if (clientIndex > MaxClients) {
     return makeError(0, ErrClientIndexOutOfBounds, clientIndex, 0);
   }
-  printf("here %d\n", clientIndex);
   client = &clients[clientIndex];
   if (!client) {
-    printf("here2 %d\n", clientIndex);
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
   }
   return 0;
@@ -173,7 +171,7 @@ uint32_t setEventChannelToNoneBlocking(int clientIndex) {
 }
 
 uint32_t RDMACreateID(int clientIndex) {
-  client *c = NULL;
+  client *c;
   uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
