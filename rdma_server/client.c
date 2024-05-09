@@ -417,6 +417,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
   c->LocalMetaSGE.lkey = (uint64_t)c->LocalMetaMR->lkey;
 
   printf("4\n");
+  bzero(&c->LocalMetaSendWR, sizeof(c->LocalMetaSendWR));
   c->LocalMetaSendWR.sg_list = &c->LocalMetaSGE;
   c->LocalMetaSendWR.num_sge = 1;
   c->LocalMetaSendWR.opcode = IBV_WR_SEND;
