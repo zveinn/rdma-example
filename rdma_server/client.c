@@ -112,6 +112,7 @@ uint32_t getClient(int clientIndex, client **client) {
     return makeError(0, ErrClientIndexOutOfBounds, clientIndex, 0);
   }
   client = &clients[clientIndex];
+  printf("+CP: %p", client);
   if (!client) {
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
   }
