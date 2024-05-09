@@ -63,15 +63,15 @@ typedef struct {
   // LOCAL META DATA
   struct rdma_buffer_attr LocalMetaAttributes;
   struct ibv_mr *LocalMetaMR;
-  struct ibv_sge *LocalMetaSGE;
-  struct ibv_recv_wr *LocalMetaReceiveWR;
+  struct ibv_sge LocalMetaSGE;
+  struct ibv_recv_wr LocalMetaReceiveWR;
   struct ibv_recv_wr *BadLocalMetaReceiveWR;
 
   // REMOTE META DATA
   struct rdma_buffer_attr RemoteMetaAttributes;
   struct ibv_mr *RemoteMetaMR;
-  struct ibv_sge *RemoteMetaSGE;
-  struct ibv_recv_wr *RemoteMetaReceiveWR;
+  struct ibv_sge RemoteMetaSGE;
+  struct ibv_recv_wr RemoteMetaReceiveWR;
   struct ibv_recv_wr *BadRemoteMetaReceiveWR;
 
 } client;
@@ -346,19 +346,19 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   }
 
   printf("1\n");
-  c->RemoteMetaSGE->addr = (uint64_t)c->RemoteMetaMR->addr;
+  c->RemoteMetaSGE.addr = (uint64_t)c->RemoteMetaMR->addr;
   printf("2\n");
-  c->RemoteMetaSGE->length = c->RemoteMetaMR->length;
+  c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
   printf("3\n");
-  c->RemoteMetaSGE->lkey = c->RemoteMetaMR->lkey;
+  c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
   printf("4\n");
 
-  c->RemoteMetaReceiveWR->sg_list = c->RemoteMetaSGE;
+  c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
   printf("5\n");
-  c->RemoteMetaReceiveWR->num_sge = 1;
+  c->RemoteMetaReceiveWR.num_sge = 1;
   printf("6\n");
 
-  int8_t ret = ibv_post_recv(c->CMID->qp, c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
+  int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
   printf("7\n");
   if (ret) {
     return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
