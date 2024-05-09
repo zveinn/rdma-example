@@ -54,14 +54,14 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
   }
   debug("waiting for cm event: RDMA_CM_EVENT_ADDR_RESOLVED\n");
 
-  int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
-  if (flags == -1) {
-    printf("ERROR SETTING NONBLOCK: %d\n", ret);
-  }
-  ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
-  if (ret == -1) {
-    printf("ERROR SETTING NONBLOCK2: %d\n", ret);
-  }
+  // int flags = fcntl(cm_event_channel->fd, F_GETFL, 0);
+  // if (flags == -1) {
+  //   printf("ERROR SETTING NONBLOCK: %d\n", ret);
+  // }
+  // ret = fcntl(cm_event_channel->fd, F_SETFL, flags | O_NONBLOCK);
+  // if (ret == -1) {
+  //   printf("ERROR SETTING NONBLOCK2: %d\n", ret);
+  // }
   // uint32_t retPoll = pollEventChannel(
   //     cm_event_channel,
   //     RDMA_CM_EVENT_ADDR_RESOLVED,
