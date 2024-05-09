@@ -554,6 +554,20 @@ int main() {
   printf("15: 0x%X\n", ret);
   ret = RegisterLocalBufferAtRemoteServer(1, src);
   printf("16: 0x%X\n", ret);
+
+  struct ibv_wc wc[2];
+  ret = process_work_completion_events(c->CompletionChannel, wc);
+  if (ret != 1) {
+    debug("We failed to get work completions , ret = %d \n", ret);
+    return ret;
+  }
+
+  ret = process_work_completion_events(c->CompletionChannel, wc);
+  if (ret != 1) {
+    debug("We failed to get work completions , ret = %d \n", ret);
+    return ret;
+  }
+
   ret = WriteToRemoteBuffer(1);
   printf("17: 0x%X\n", ret);
 
