@@ -436,7 +436,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
   c->LocalSendWR.send_flags = IBV_SEND_SIGNALED;
 
   printf("5\n");
-  int ret = ibv_post_send(c->QueuePairs, &c->LocalSendWR, &c->BadLocalSendWR);
+  int ret = ibv_post_send(c->CMID->qp, &c->LocalSendWR, &c->BadLocalSendWR);
   if (ret) {
     return makeError(ret, 0255, 0, 0);
   }
