@@ -396,7 +396,9 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
 
   printf("buffer: %s\n", *buffer);
   printf("buffer: %p\n", *buffer);
-  static char *src = "1111";
+  static char *src = NULL;
+  src = calloc(5, 1);
+  strncpy(src, "hello", 5);
   // printf("buffer: %p\n", &buffer);
   c->LocalSourceMR = rdma_buffer_register(
       c->ProtectedDomain,
