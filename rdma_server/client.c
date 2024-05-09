@@ -93,13 +93,16 @@ uint32_t createClient(
   clients[clientIndex]->port_space = port_space;
 
   // clients[clientIndex].addr = malloc(sizeof(struct sockaddr_in));
-  c->addr.sin_family = AF_INET;
-  c->addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-  int ret;
-  ret = get_addr(addr, (struct sockaddr *)&c->addr);
-  printf("ADDR RET: %d", ret);
-  c->addr.sin_port = htons(strtol(port, NULL, 0));
+  struct sockaddr_in server_sockaddr;
+  bzero(&server_sockaddr, sizeof server_sockaddr);
+  server_sockaddr.sin_family = AF_INET;
+  server_sockaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
+  int ret;
+  ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
+  printf("ADDR RET: %d", ret);
+  server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
+  clients[clientIndex]->addr = server_sockaddr;
   return 0;
 }
 
