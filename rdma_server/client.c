@@ -497,7 +497,7 @@ int main() {
       "15.15.15.2",
       "11111",
       5000, 5000,
-      10000,
+      200,
       10, 10, 10, 10,
       IBV_QPT_RC,
       RDMA_PS_TCP);
@@ -555,7 +555,8 @@ int main() {
   ret = RegisterLocalBufferAtRemoteServer(1, src);
   printf("16: 0x%X\n", ret);
 
-  struct ibv_wc wc[2];
+  struct ibv_wc wc[1];
+  printf("CC %p", c->CompletionChannel);
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
     debug("We failed to get work completions , ret = %d \n", ret);
