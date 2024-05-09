@@ -556,7 +556,7 @@ int main() {
   printf("16: 0x%X\n", ret);
 
   struct ibv_wc wc[1];
-  printf("CC %p", c->CompletionChannel);
+  printf("CC %p\n", c->CompletionChannel);
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
     debug("We failed to get work completions , ret = %d \n", ret);
