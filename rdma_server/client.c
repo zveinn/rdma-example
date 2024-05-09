@@ -453,7 +453,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
 int main() {
 
   // char *src = calloc(2000, 1);
-  char *src = "kjsdlflskdlfls";
+  char *src = "01234567890123456789012345678901234567890123456789";
 
   uint32_t ret;
   ret = createClient(
