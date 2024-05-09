@@ -226,7 +226,7 @@ int process_work_completion_events(struct ibv_comp_channel *comp_channel,
     return ret;
   }
 
-  ret = ibv_poll_cq(cq_ptr, 1, wc + 0);
+  ret = ibv_poll_cq(cq_ptr, 1, wc);
   if (ret < 0) {
     debug("Failed to poll cq for wc due to %d \n", ret);
     return ret;

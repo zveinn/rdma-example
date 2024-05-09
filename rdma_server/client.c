@@ -559,13 +559,14 @@ int main() {
   printf("CC %p\n", c->CompletionChannel);
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
-    debug("We failed to get work completions , ret = %d \n", ret);
+    printf("FAILED\n");
     return ret;
   }
   printf("17: 0x%X\n", ret);
 
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
+    printf("FAILED\n");
     debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
   }
