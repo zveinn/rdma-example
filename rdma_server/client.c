@@ -410,6 +410,9 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
 
   printf("2\n");
   c->LocalMetaMR = rdma_buffer_register(c->ProtectedDomain, &c->LocalMetaAttributes, sizeof(c->LocalMetaAttributes), (IBV_ACCESS_LOCAL_WRITE));
+  if (c->LocalMetaMR) {
+    return makeError(0, 0255, 0, 0);
+  }
 
   printf("3\n");
   c->LocalMetaSGE.addr = (uint64_t)c->LocalMetaMR->addr;
@@ -426,7 +429,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
   printf("5\n");
   int ret = ibv_post_send(c->CMID->qp, &c->LocalMetaSendWR, &c->BadLocalMetaSendWR);
   if (ret) {
-    return makeError(ret, ErrUnableToResolveAddress, 0, 0);
+    return makeError(ret, 0255, 0, 0);
   }
   return 0;
 }
