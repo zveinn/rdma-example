@@ -311,7 +311,7 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
     return cErr;
   }
 
-  bzero(&c->QueuePairAttr, sizeof c->QueuePairAttr);
+  // bzero(&c->QueuePairAttr, sizeof c->QueuePairAttr);
   c->QueuePairAttr.cap.max_recv_sge = c->MaxReceiveSGE;
   c->QueuePairAttr.cap.max_recv_wr = c->MaxReceiveWR;
   c->QueuePairAttr.cap.max_send_sge = c->MaxSendSGE;
@@ -353,7 +353,7 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
   c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
 
-  bzero(&c->RemoteMetaReceiveWR, sizeof(c->RemoteMetaReceiveWR));
+  // bzero(&c->RemoteMetaReceiveWR, sizeof(c->RemoteMetaReceiveWR));
   c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
   c->RemoteMetaReceiveWR.num_sge = 1;
 
@@ -431,7 +431,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
   c->LocalSendSGE.lkey = (uint64_t)c->LocalMetaMR->lkey;
 
   printf("4\n");
-  bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
+  // bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
   c->LocalSendWR.sg_list = &c->LocalSendSGE;
   c->LocalSendWR.num_sge = 1;
   c->LocalSendWR.opcode = IBV_WR_SEND;
@@ -458,7 +458,7 @@ uint32_t WriteToRemoteBuffer(int clientIndex) {
   c->LocalSendSGE.lkey = (uint64_t)c->LocalSourceMR->lkey;
 
   printf("2\n");
-  bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
+  // bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
   c->LocalSendWR.sg_list = &c->LocalSendSGE;
   c->LocalSendWR.num_sge = 1;
   c->LocalSendWR.opcode = IBV_WR_RDMA_WRITE;
