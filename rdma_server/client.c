@@ -445,7 +445,7 @@ int main() {
   printf("7: 0x%X\n", ret);
   ret = pollEventChannel(
       c->EventChannel,
-      RDMA_CM_EVENT_ADDR_RESOLVED,
+      RDMA_CM_EVENT_ROUTE_RESOLVED,
       0,
       3000,
       &cm_event);
