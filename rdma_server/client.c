@@ -561,6 +561,7 @@ int main() {
     debug("We failed to get work completions , ret = %d \n", ret);
     return ret;
   }
+  printf("17: 0x%X\n", ret);
 
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
@@ -568,8 +569,9 @@ int main() {
     return ret;
   }
 
+  printf("18: 0x%X\n", ret);
   ret = WriteToRemoteBuffer(1);
-  printf("17: 0x%X\n", ret);
+  printf("19: 0x%X\n", ret);
 
   while (1) {
     printf("MADE IT!\n");
