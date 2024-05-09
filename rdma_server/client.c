@@ -386,7 +386,7 @@ uint32_t RDMAConnect(int clientIndex) {
   return 0;
 }
 
-uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
+uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
   sleep(3);
   client *c = NULL;
   uint32_t cErr = getClient(clientIndex, &c);
@@ -394,13 +394,13 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
     return cErr;
   }
 
-  printf("buffer: %s\n", buffer);
-  printf("buffer: %p\n", buffer);
+  printf("buffer: %s\n", *buffer);
+  printf("buffer: %p\n", *buffer);
   // printf("buffer: %p\n", &buffer);
   c->LocalSourceMR = rdma_buffer_register(
       c->ProtectedDomain,
       buffer,
-      strlen(buffer),
+      strlen(*buffer),
       (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
        IBV_ACCESS_REMOTE_WRITE));
 
@@ -564,7 +564,7 @@ int main() {
       &cm_event);
 
   printf("15: 0x%X\n", ret);
-  ret = RegisterLocalBufferAtRemoteServer(1, src);
+  ret = RegisterLocalBufferAtRemoteServer(1, &src);
   printf("16: 0x%X\n", ret);
 
   struct ibv_wc wc[1];
