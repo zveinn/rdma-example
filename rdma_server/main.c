@@ -38,8 +38,6 @@ typedef struct {
   // struct ibv_recv_wr RCV_WR;
 
   struct rdma_buffer_attr Server_B2;
-  struct rdma_buffer_attr B3;
-  struct rdma_buffer_attr B4;
   char *dataBuffer;
 
   int index;

@@ -583,20 +583,13 @@ int main() {
     return ret;
   }
 
-  // printf("WAIT2....\n");
-  // ret = process_work_completion_events(c->CompletionChannel, wc);
-  // if (ret != 1) {
-  //   printf("FAILED2\n");
-  //   return ret;
-  // }
+  printf("WAIT2....\n");
+  ret = process_work_completion_events(c->CompletionChannel, wc);
+  if (ret != 1) {
+    printf("FAILED2\n");
+    return ret;
+  }
   // printf("NAILED IT: 0x%X\n", ret);
-  //
-  // ret = process_work_completion_events(c->CompletionChannel, wc);
-  // if (ret != 1) {
-  //   printf("FAILED\n");
-  //   debug("We failed to get work completions , ret = %d \n", ret);
-  //   return ret;
-  // }
 
   printf("18: 0x%X\n", ret);
   ret = WriteToRemoteBuffer(1);
@@ -604,6 +597,7 @@ int main() {
 
   while (1) {
     show_rdma_buffer_attr(&c->RemoteMetaAttributes);
+    show_rdma_buffer_attr(&c->LocalMetaAttributes);
     printf("MADE IT!\n");
     sleep(1);
   }
