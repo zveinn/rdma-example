@@ -431,6 +431,38 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
   if (ret) {
     return makeError(ret, 0255, 0, 0);
   }
+  printf("6\n");
+  return 0;
+}
+
+uint32_t WriteToRemoteBuffer(int clientIndex) {
+  client *c = NULL;
+  uint32_t cErr = getClient(clientIndex, &c);
+  if (cErr) {
+    return cErr;
+  }
+  printf("1\n");
+  c->LocalMetaSGE.addr = (uint64_t)c->LocalSourceMR->addr;
+  c->LocalMetaSGE.length = (uint64_t)c->LocalSourceMR->length;
+  c->LocalMetaSGE.lkey = (uint64_t)c->LocalSourceMR->lkey;
+
+  printf("2\n");
+  bzero(&c->LocalMetaSendWR, sizeof(c->LocalMetaSendWR));
+  c->LocalMetaSendWR.sg_list = &c->LocalMetaSGE;
+  c->LocalMetaSendWR.num_sge = 1;
+  c->LocalMetaSendWR.opcode = IBV_WR_RDMA_WRITE;
+  c->LocalMetaSendWR.send_flags = IBV_SEND_SIGNALED;
+
+  c->LocalMetaSendWR.wr.rdma.rkey = c->RemoteMetaAttributes.stag.remote_stag;
+  c->LocalMetaSendWR.wr.rdma.remote_addr = c->RemoteMetaAttributes.address;
+
+  printf("3\n");
+  int ret = ibv_post_send(c->CMID->qp, &c->LocalMetaSendWR, &c->BadLocalMetaSendWR);
+  if (ret) {
+    return makeError(ret, 0255, 0, 0);
+  }
+  printf("4\n");
+
   return 0;
 }
 
@@ -522,6 +554,7 @@ int main() {
   printf("15: 0x%X\n", ret);
   ret = RegisterLocalBufferAtRemoteServer(1, src);
   printf("16: 0x%X\n", ret);
+  ret = WriteToRemoteBuffer(1);
   printf("17: 0x%X\n", ret);
 
   while (1) {
