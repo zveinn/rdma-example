@@ -406,7 +406,7 @@ int main(int argc, char **argv) {
   ret = rdma_create_id(EventChannel, &serverID, NULL, RDMA_PS_TCP);
   if (ret) {
     // debug("Creating server cm id failed with errno: %d ", -errno);
-    return ErrUnableToCreateServerCMID;
+    return ErrUnableToCreateCMID;
   }
   ret = rdma_bind_addr(serverID, (struct sockaddr *)&server_sockaddr);
   if (ret) {

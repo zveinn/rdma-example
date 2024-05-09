@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -18,6 +19,7 @@ var (
 	sleepTimer int
 	A          int
 	B          int
+	PrettyJson bool
 )
 
 // todo: show_gids
@@ -27,6 +29,7 @@ func main() {
 	flag.StringVar(&cmd, "cmd", "", "command for watch")
 	flag.StringVar(&filter, "f", "", "filter for watch")
 	flag.IntVar(&sleepTimer, "n", 0, "interval")
+	flag.BoolVar(&PrettyJson, "p", false, "pretty print json output")
 	flag.Parse()
 
 	args := flag.Args()
@@ -61,6 +64,7 @@ func watch() {
 			fmt.Println(err)
 			panic(err)
 		}
+		finalout := make([][]byte, 0)
 		splitOut := bytes.Split(out, []byte{10})
 		for i, v := range splitOut {
 			if filter != "" {
@@ -71,7 +75,8 @@ func watch() {
 							if ii < 0 {
 								break
 							}
-							fmt.Println(string(splitOut[ii]))
+							// fmt.Println(string(splitOut[ii]))
+							finalout = append(finalout, splitOut[ii])
 						}
 					}
 					fmt.Println(string(v))
@@ -80,11 +85,22 @@ func watch() {
 							if ii >= len(splitOut) {
 								break
 							}
-							fmt.Println(string(splitOut[ii]))
+							finalout = append(finalout, splitOut[ii])
 						}
 					}
 				}
 			} else {
+				finalout = append(finalout, v)
+			}
+		}
+		if PrettyJson {
+			var prettyJSON bytes.Buffer
+			for _, v := range finalout {
+				json.Indent(&prettyJSON, v, "", "\t")
+			}
+			fmt.Println(string(prettyJSON.Bytes()))
+		} else {
+			for _, v := range finalout {
 				fmt.Println(string(v))
 			}
 		}

@@ -29,11 +29,12 @@
 /* NEW STUFF */
 /* NEW STUFF */
 static int ListenerBacklog = 20;
+static int MaxClients = 1000;
 
 static int16_t ErrNone = 0;
 static int16_t ErrInvalidServerIP = 1;
 static int16_t ErrUnableToCreateEventChannel = 2;
-static int16_t ErrUnableToCreateServerCMID = 3;
+static int16_t ErrUnableToCreateCMID = 3;
 static int16_t ErrUnableToBindToAddress = 4;
 static int16_t ErrUnableToListenOnAddress = 5;
 static int16_t ErrUnableToResolveAddress = 6;
@@ -47,9 +48,15 @@ static int16_t ErrUnableToRegisterCQNotifications = 13;
 static int16_t ErrUnableToCreateQueuePairs = 14;
 static int16_t ErrUnableToGetFromEventChannel = 15;
 static int16_t ErrUnableToPollEventChannelFD = 16;
+static int16_t ErrUnableToGetClient = 17;
+static int16_t ErrClientIndexOutOfBounds = 18;
+static int16_t ErrUnableToCreateMetaMR = 19;
+static int16_t ErrUnableToPostLocalMetaMRToReceiveQueue = 20;
+static int16_t ErrUnableToPostRemoteMetaMRToReceiveQueue = 21;
 
 static int16_t ErrUnexpectedEventStatus = 77;
 static int16_t ErrUnexpectedEventType = 78;
+static int16_t ErrEventChannelGetTimeout = 79;
 
 static int16_t ErrUnableToGetEventChannelFlags = 96;
 static int16_t ErrUnableToSetEventChannelToNoneBlocking = 97;

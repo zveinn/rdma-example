@@ -213,13 +213,13 @@ static int client_connect_to_server() {
   bzero(&conn_param, sizeof(conn_param));
   conn_param.initiator_depth = 3;
   conn_param.responder_resources = 3;
-  conn_param.retry_count = 3; // if fail, then how many times to retry
+  conn_param.retry_count = 3;
   ret = rdma_connect(cm_client_id, &conn_param);
   if (ret) {
     debug("Failed to connect to remote host , errno: %d\n", -errno);
     return -errno;
   }
-  // sleep(10);
+
   debug("waiting for cm event: RDMA_CM_EVENT_ESTABLISHED\n");
   ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ESTABLISHED,
                               &cm_event);
@@ -507,8 +507,8 @@ void usage() {
 }
 
 int main(int argc, char **argv) {
-  struct sockaddr_in server_sockaddr;
   int ret, option;
+  struct sockaddr_in server_sockaddr;
   bzero(&server_sockaddr, sizeof server_sockaddr);
   server_sockaddr.sin_family = AF_INET;
   server_sockaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);

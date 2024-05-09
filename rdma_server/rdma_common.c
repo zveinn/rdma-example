@@ -131,18 +131,18 @@ uint32_t pollEventChannel(
   struct timespec loop_time;
   clock_gettime(CLOCK_REALTIME, &start_time);
 
-  // TODO .. DO WE YIELD HERE ???
   while (1) {
     clock_gettime(CLOCK_REALTIME, &loop_time);
     uint64_t diff = timestampDiff(&loop_time, &start_time);
     if (diff > timeout) {
-      return 0;
+      return makeError(ret, ErrEventChannelGetTimeout, 0, 0);
     }
 
     ret = rdma_get_cm_event(channel, event);
     if (ret) {
       continue;
-      sched_yield();
+      // TODO .. DO WE YIELD HERE ???
+      // sched_yield();
     } else {
       break;
     }
