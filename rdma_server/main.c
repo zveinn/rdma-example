@@ -193,17 +193,16 @@ void *handle_client(void *arg) {
   }
 
   while (1) {
-    printf("???...\n");
-    show_rdma_buffer_attr(&c->metaAttr);
     printf("?? : %u bytes \n", c->metaAttr.length);
-    printf("CLIENT WORK EVENT POLL+++\n");
+    printf("CLIENT %p\n", &c);
+    show_rdma_buffer_attr(&c->metaAttr);
+    printf("data: %s\n", c->dataBuffer);
     // struct ibv_wc wc;
     // ret = process_work_completion_events(c->completionChannel, &wc);
     // if (ret != 1) {
     //   debug("Failed to receive , ret = %d \n", ret);
     //   // return NULL;
     // }
-    printf("data: %s\n", c->dataBuffer);
     sleep(1);
   };
 
