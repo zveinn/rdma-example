@@ -398,7 +398,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
   // printf("buffer: %p\n", &buffer);
   c->LocalSourceMR = rdma_buffer_register(
       c->ProtectedDomain,
-      buffer,
+      &buffer,
       strlen(*buffer),
       (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
        IBV_ACCESS_REMOTE_WRITE));
@@ -498,7 +498,7 @@ uint32_t WriteToRemoteBuffer(int clientIndex) {
 int main() {
 
   // char *src = calloc(2000, 1);
-  char *src = "helloworld";
+  char *src = "1111";
   printf("BuFFER: %p\n", src);
   // printf("BuFFER: %p\n", &src);
 
