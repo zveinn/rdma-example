@@ -398,8 +398,8 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
   // printf("buffer: %p\n", &buffer);
   c->LocalSourceMR = rdma_buffer_register(
       c->ProtectedDomain,
-      &buffer,
-      strlen(*buffer),
+      buffer,
+      20,
       (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
        IBV_ACCESS_REMOTE_WRITE));
 
