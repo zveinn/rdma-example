@@ -117,6 +117,7 @@ uint32_t getClient(int clientIndex, client *client) {
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
   }
   printf("cok: %d\n", clientIndex);
+  printf("cok: %p\n", client);
   return 0;
 }
 
