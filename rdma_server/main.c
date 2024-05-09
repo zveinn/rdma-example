@@ -199,12 +199,12 @@ void *handle_client(void *arg) {
     debug("Failed to send server metadata to the client, ret = %d \n", ret);
     return NULL;
   }
-  // printf("WAITING FOR CLIENT.. 2222.\n");
-  // ret = process_work_completion_events(c->completionChannel, &wc);
-  // if (ret != 1) {
-  //   debug("Failed to receive , ret = %d \n", ret);
-  //   // return NULL;
-  // }
+  printf("WAITING FOR CLIENT.. 2222.\n");
+  ret = process_work_completion_events(c->completionChannel, &wc);
+  if (ret != 1) {
+    debug("Failed to receive , ret = %d \n", ret);
+    // return NULL;
+  }
 
   while (1) {
     printf("?? : %u bytes \n", c->metaAttr.length);
