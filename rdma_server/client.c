@@ -410,7 +410,7 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
 
   printf("2\n");
   c->LocalMetaMR = rdma_buffer_register(c->ProtectedDomain, &c->LocalMetaAttributes, sizeof(c->LocalMetaAttributes), (IBV_ACCESS_LOCAL_WRITE));
-  if (c->LocalMetaMR) {
+  if (!c->LocalMetaMR) {
     return makeError(0, 0255, 0, 0);
   }
 
