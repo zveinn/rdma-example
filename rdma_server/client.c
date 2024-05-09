@@ -111,12 +111,12 @@ uint32_t getClient(int clientIndex, client **client) {
   if (clientIndex > MaxClients) {
     return makeError(0, ErrClientIndexOutOfBounds, clientIndex, 0);
   }
+  printf("+C: %d", clientIndex);
   client = &clients[clientIndex];
   if (!client) {
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
   }
   printf("+CP: %p", client);
-  printf("+C: %d", clientIndex);
   return 0;
 }
 
