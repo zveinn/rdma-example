@@ -136,9 +136,9 @@ static int send_server_metadata_to_client(connection *c) {
   struct ibv_wc wc;
   int ret = -1;
 
-  c->dataBuffer = calloc(4, 1);
+  c->dataBuffer = calloc(50, 1);
   c->serverMR =
-      rdma_buffer_register(c->PD, c->dataBuffer, 4,
+      rdma_buffer_register(c->PD, c->dataBuffer, 50,
                            (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
                             IBV_ACCESS_REMOTE_WRITE));
 
