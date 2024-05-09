@@ -136,10 +136,6 @@ static int send_server_metadata_to_client(connection *c) {
   struct ibv_wc wc;
   int ret = -1;
 
-  printf("???...\n");
-  show_rdma_buffer_attr(&c->metaAttr);
-  printf("?? : %u bytes \n", c->metaAttr.length);
-
   c->dataBuffer = calloc(4, 1);
   c->serverMR =
       rdma_buffer_register(c->PD, c->dataBuffer, 4,
@@ -197,6 +193,9 @@ void *handle_client(void *arg) {
   }
 
   while (1) {
+    printf("???...\n");
+    show_rdma_buffer_attr(&c->metaAttr);
+    printf("?? : %u bytes \n", c->metaAttr.length);
     printf("CLIENT WORK EVENT POLL+++\n");
     struct ibv_wc wc;
     ret = process_work_completion_events(c->completionChannel, &wc);
