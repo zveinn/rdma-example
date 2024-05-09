@@ -107,23 +107,20 @@ uint32_t createClient(
   return 0;
 }
 
-uint32_t getClient(int clientIndex, client *client) {
+uint32_t getClient(int clientIndex, client **client) {
   if (clientIndex > MaxClients) {
     return makeError(0, ErrClientIndexOutOfBounds, clientIndex, 0);
   }
-  printf("CID: %d\n", clientIndex);
-  client = *&clients[clientIndex];
+  *client = clients[clientIndex];
   if (!client) {
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
   }
-  printf("cok: %d\n", clientIndex);
-  printf("cok: %p\n", client);
   return 0;
 }
 
 uint32_t deleteClient(int clientIndex) {
   client *c;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -136,7 +133,7 @@ uint32_t deleteClient(int clientIndex) {
 
 uint32_t createEventChannel(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -152,7 +149,7 @@ uint32_t createEventChannel(int clientIndex) {
 
 uint32_t setEventChannelToNoneBlocking(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -176,7 +173,7 @@ uint32_t setEventChannelToNoneBlocking(int clientIndex) {
 
 uint32_t RDMACreateID(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -196,7 +193,7 @@ uint32_t RDMACreateID(int clientIndex) {
 
 uint32_t RDMAResolveAddress(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -216,7 +213,7 @@ uint32_t RDMAResolveAddress(int clientIndex) {
 
 uint32_t RDMAResolveRoute(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -234,7 +231,7 @@ uint32_t RDMAResolveRoute(int clientIndex) {
 
 uint32_t IBVAllocProtectedDomain(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -250,7 +247,7 @@ uint32_t IBVAllocProtectedDomain(int clientIndex) {
 
 uint32_t IBVCreateCompletionChannel(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -266,7 +263,7 @@ uint32_t IBVCreateCompletionChannel(int clientIndex) {
 
 uint32_t IBVCreateCompletionQueue(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -287,7 +284,7 @@ uint32_t IBVCreateCompletionQueue(int clientIndex) {
 
 uint32_t IBVRequestCompletionNotifications(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -305,7 +302,7 @@ uint32_t IBVRequestCompletionNotifications(int clientIndex) {
 
 uint32_t RDMACreateQueuePairs(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -332,7 +329,7 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
 // write metra attributes to.
 uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -363,7 +360,7 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
 
 uint32_t RDMAConnect(int clientIndex) {
   client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, c);
+  uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
@@ -435,7 +432,7 @@ int main() {
 
   struct rdma_cm_event *cm_event = NULL;
   client *c;
-  ret = getClient(1, c);
+  ret = getClient(1, &c);
   printf("6: 0x%X\n", ret);
   ret = pollEventChannel(
       c->EventChannel,
