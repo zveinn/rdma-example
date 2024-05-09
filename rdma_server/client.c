@@ -1,6 +1,7 @@
 #include "rdma_common.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 
 // NOTES
@@ -395,11 +396,12 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char **buffer) {
 
   printf("buffer: %s\n", *buffer);
   printf("buffer: %p\n", *buffer);
+  char *src = "1111";
   // printf("buffer: %p\n", &buffer);
   c->LocalSourceMR = rdma_buffer_register(
       c->ProtectedDomain,
-      buffer,
-      4,
+      src,
+      strlen(src),
       (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
        IBV_ACCESS_REMOTE_WRITE));
 
