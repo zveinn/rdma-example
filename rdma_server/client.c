@@ -63,9 +63,12 @@ typedef struct {
   // LOCAL META DATA
   struct rdma_buffer_attr LocalMetaAttributes;
   struct ibv_mr *LocalMetaMR;
+  struct ibv_mr *LocalSourceMR;
   struct ibv_sge LocalMetaSGE;
   struct ibv_recv_wr LocalMetaReceiveWR;
   struct ibv_recv_wr *BadLocalMetaReceiveWR;
+  struct ibv_send_wr LocalMetaSendWR;
+  struct ibv_send_wr *BadLocalMetaSendWR;
 
   // REMOTE META DATA
   struct rdma_buffer_attr RemoteMetaAttributes;
@@ -345,21 +348,14 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
     return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
   }
 
-  printf("1\n");
   c->RemoteMetaSGE.addr = (uint64_t)c->RemoteMetaMR->addr;
-  printf("2\n");
   c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
-  printf("3\n");
   c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
-  printf("4\n");
 
   c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
-  printf("5\n");
   c->RemoteMetaReceiveWR.num_sge = 1;
-  printf("6\n");
 
   int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
-  printf("7\n");
   if (ret) {
     return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
   }
@@ -388,6 +384,47 @@ uint32_t RDMAConnect(int clientIndex) {
 
   return 0;
 }
+
+uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
+  client *c = NULL;
+  uint32_t cErr = getClient(clientIndex, &c);
+  if (cErr) {
+    return cErr;
+  }
+
+  c->LocalSourceMR = rdma_buffer_register(
+      c->ProtectedDomain,
+      &buffer,
+      sizeof(buffer),
+      (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+       IBV_ACCESS_REMOTE_WRITE));
+
+  if (!c->LocalSourceMR) {
+    return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
+  }
+
+  c->LocalMetaAttributes.address = (uint64_t)c->LocalMetaMR->addr;
+  c->LocalMetaAttributes.length = (uint64_t)c->LocalMetaMR->length;
+  c->LocalMetaAttributes.stag.local_stag = (uint64_t)c->LocalMetaMR->lkey;
+
+  c->LocalMetaMR = rdma_buffer_register(c->ProtectedDomain, &c->LocalMetaAttributes, sizeof(c->LocalMetaAttributes), (IBV_ACCESS_LOCAL_WRITE));
+
+  c->LocalMetaSGE.addr = (uint64_t)c->LocalMetaMR->addr;
+  c->LocalMetaSGE.length = (uint64_t)c->LocalMetaMR->length;
+  c->LocalMetaSGE.lkey = (uint64_t)c->LocalMetaMR->lkey;
+
+  c->LocalMetaSendWR.sg_list = &c->LocalMetaSGE;
+  c->LocalMetaSendWR.num_sge = 1;
+  c->LocalMetaSendWR.opcode = IBV_WR_SEND;
+  c->LocalMetaSendWR.send_flags = IBV_SEND_SIGNALED;
+
+  int ret = ibv_post_send(c->CMID->qp, &c->LocalMetaSendWR, &c->BadLocalMetaSendWR);
+  if (ret) {
+    return makeError(ret, ErrUnableToResolveAddress, 0, 0);
+  }
+  return 0;
+}
+
 //// TODO ... EXCHANGE META INFO
 //// TOTO .. CLIENT WRITE
 ////
@@ -409,6 +446,9 @@ uint32_t RDMAConnect(int clientIndex) {
 ////
 ///
 int main() {
+
+  char *src = calloc(2000, 1);
+
   uint32_t ret;
   ret = createClient(
       1,
@@ -461,6 +501,7 @@ int main() {
   ret = RegisterBufferForRemoteMetaAttributes(1);
   printf("13: 0x%X\n", ret);
   ret = RDMAConnect(1);
+  printf("14: 0x%X\n", ret);
   ret = pollEventChannel(
       c->EventChannel,
       RDMA_CM_EVENT_ESTABLISHED,
@@ -468,7 +509,15 @@ int main() {
       3000,
       &cm_event);
 
-  printf("14: 0x%X\n", ret);
+  printf("15: 0x%X\n", ret);
+  ret = RegisterLocalBufferAtRemoteServer(1, src);
+  printf("16: 0x%X\n", ret);
+  printf("17: 0x%X\n", ret);
+
+  while (1) {
+    printf("MADE IT!\n");
+    sleep(1);
+  }
 
   return 1;
 }
