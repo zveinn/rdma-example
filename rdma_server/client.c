@@ -140,6 +140,7 @@ uint32_t createEventChannel(int clientIndex) {
     return cErr;
   }
 
+  printf("CLIENT!\n");
   c->EventChannel = rdma_create_event_channel();
   if (!c->EventChannel) {
     return makeError(0, ErrUnableToCreateEventChannel, 0, 0);
