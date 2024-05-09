@@ -569,10 +569,17 @@ int main() {
   printf("17: 0x%X\n", ret);
 
   struct ibv_wc wc[2];
-  printf("CC %p\n", c->CompletionChannel);
+  printf("WAIT1....\n");
   ret = process_work_completion_events(c->CompletionChannel, wc);
   if (ret != 1) {
-    printf("FAILED\n");
+    printf("FAILED1\n");
+    return ret;
+  }
+
+  printf("WAIT2....\n");
+  ret = process_work_completion_events(c->CompletionChannel, wc);
+  if (ret != 1) {
+    printf("FAILED2\n");
     return ret;
   }
   printf("NAILED IT: 0x%X\n", ret);
