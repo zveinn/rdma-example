@@ -55,7 +55,6 @@ typedef struct {
   struct ibv_comp_channel *CompletionChannel;
   struct ibv_cq *CompletionQueue;
   struct ibv_qp_init_attr QueuePairAttr;
-  struct ibv_qp *QueuePairs;
   // IBV_QPT_RC
   enum ibv_qp_type QueuePairType;
 
@@ -325,7 +324,6 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
   if (ret) {
     return makeError(0, ErrUnableToCreateQueuePairs, 0, 0);
   }
-  c->QueuePairs = c->CMID->qp;
 
   return 0;
 }
@@ -551,12 +549,14 @@ int main() {
   printf("10: 0x%X\n", ret);
   ret = IBVCreateCompletionChannel(1);
   printf("11: 0x%X\n", ret);
-  ret = RDMACreateQueuePairs(1);
+  ret = IBVCreateCompletionQueue(1);
   printf("12: 0x%X\n", ret);
-  ret = RegisterBufferForRemoteMetaAttributes(1);
+  ret = RDMACreateQueuePairs(1);
   printf("13: 0x%X\n", ret);
-  ret = RDMAConnect(1);
+  ret = RegisterBufferForRemoteMetaAttributes(1);
   printf("14: 0x%X\n", ret);
+  ret = RDMAConnect(1);
+  printf("15: 0x%X\n", ret);
   ret = pollEventChannel(
       c->EventChannel,
       RDMA_CM_EVENT_ESTABLISHED,
@@ -564,9 +564,9 @@ int main() {
       3000,
       &cm_event);
 
-  printf("15: 0x%X\n", ret);
-  ret = RegisterLocalBufferAtRemoteServer(1, &src);
   printf("16: 0x%X\n", ret);
+  ret = RegisterLocalBufferAtRemoteServer(1, &src);
+  printf("17: 0x%X\n", ret);
 
   struct ibv_wc wc[2];
   printf("CC %p\n", c->CompletionChannel);
