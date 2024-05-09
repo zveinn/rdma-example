@@ -212,10 +212,8 @@ void *handle_client(void *arg) {
     show_rdma_buffer_attr(&c->metaAttr);
     show_rdma_buffer_attr(&c->Server_B2);
 
-    while (*c->dataBuffer) {
-      printf("%d ", (int)*c->dataBuffer); // Print byte value in decimal with space
-      c->dataBuffer++;                    // Move pointer to the next character
-    }
+    printf("%d ", (int)c->dataBuffer[0]);
+    printf("%d ", (int)c->dataBuffer[1]);
     printf("data: %s\n", c->dataBuffer);
     // struct ibv_wc wc;
     // ret = process_work_completion_events(c->completionChannel, &wc);
