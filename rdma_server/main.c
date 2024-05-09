@@ -121,7 +121,6 @@ static int registerServerMetadataBuffer(connection *c) {
   RCV_WR.sg_list = &SGE;
   RCV_WR.num_sge = 1;
 
-  // WILL GENERATE A WORK COMPLETION ON THE CLIENT SIDE
   ret = ibv_post_recv(c->cm_event_id->qp, &RCV_WR, &BAD_RCV_WR);
   if (ret) {
     debug("++IBV_POST_REC(ERR), errno: %d \n", ret);
@@ -169,6 +168,7 @@ static int send_server_metadata_to_client(connection *c) {
   c->Server_RCV_WR.opcode = IBV_WR_SEND;
   c->Server_RCV_WR.send_flags = IBV_SEND_SIGNALED;
 
+  // GENERAATES A WORK COMPLETION EVENT
   ret = ibv_post_send(c->cm_event_id->qp, &c->Server_RCV_WR,
                       &c->Server_BAD_RCV_WR);
   if (ret) {
@@ -194,11 +194,11 @@ void *handle_client(void *arg) {
     // return NULL;
   }
 
-  // ret = send_server_metadata_to_client(c);
-  // if (ret) {
-  //   debug("Failed to send server metadata to the client, ret = %d \n", ret);
-  //   return NULL;
-  // }
+  ret = send_server_metadata_to_client(c);
+  if (ret) {
+    debug("Failed to send server metadata to the client, ret = %d \n", ret);
+    return NULL;
+  }
   // printf("WAITING FOR CLIENT.. 2222.\n");
   // ret = process_work_completion_events(c->completionChannel, &wc);
   // if (ret != 1) {

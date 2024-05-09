@@ -352,7 +352,7 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
   c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
 
-  bzero(&c->RemoteMetaReceiveWR, sizeof(c->RemoteMetaReceiveWR));
+  // bzero(&c->RemoteMetaReceiveWR, sizeof(c->RemoteMetaReceiveWR));
   c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
   c->RemoteMetaReceiveWR.num_sge = 1;
 
@@ -457,7 +457,7 @@ uint32_t WriteToRemoteBuffer(int clientIndex) {
   c->LocalSendSGE.lkey = (uint64_t)c->LocalSourceMR->lkey;
 
   printf("2\n");
-  bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
+  // bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
   c->LocalSendWR.sg_list = &c->LocalSendSGE;
   c->LocalSendWR.num_sge = 1;
   c->LocalSendWR.opcode = IBV_WR_RDMA_WRITE;
@@ -558,8 +558,10 @@ int main() {
   printf("13: 0x%X\n", ret);
   ret = RegisterBufferForRemoteMetaAttributes(1);
   printf("14: 0x%X\n", ret);
+  show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   ret = RDMAConnect(1);
   printf("15: 0x%X\n", ret);
+  show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   ret = pollEventChannel(
       c->EventChannel,
       RDMA_CM_EVENT_ESTABLISHED,
@@ -568,8 +570,10 @@ int main() {
       &cm_event);
 
   printf("16: 0x%X\n", ret);
+  show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   ret = RegisterLocalBufferAtRemoteServer(1, src);
   printf("17: 0x%X\n", ret);
+  show_rdma_buffer_attr(&c->RemoteMetaAttributes);
 
   struct ibv_wc wc[2];
   printf("WAIT1....\n");
