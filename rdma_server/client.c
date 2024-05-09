@@ -345,14 +345,21 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
     return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
   }
 
+  printf("1\n");
   c->RemoteMetaSGE->addr = (uint64_t)c->RemoteMetaMR->addr;
+  printf("2\n");
   c->RemoteMetaSGE->length = c->RemoteMetaMR->length;
+  printf("3\n");
   c->RemoteMetaSGE->lkey = c->RemoteMetaMR->lkey;
+  printf("4\n");
 
   c->RemoteMetaReceiveWR->sg_list = c->RemoteMetaSGE;
+  printf("5\n");
   c->RemoteMetaReceiveWR->num_sge = 1;
+  printf("6\n");
 
   int8_t ret = ibv_post_recv(c->CMID->qp, c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
+  printf("7\n");
   if (ret) {
     return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
   }
