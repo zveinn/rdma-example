@@ -86,7 +86,6 @@ uint32_t createClient(
     enum rdma_port_space port_space) {
 
   clients[clientIndex] = malloc(sizeof(client));
-  client *c = clients[clientIndex];
   clients[clientIndex]->port_space = port_space;
   // clients[clientIndex]->addr = addr;
   clients[clientIndex]->addr_resolve_timeout = addr_resolve_timeout;
@@ -104,6 +103,7 @@ uint32_t createClient(
   server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
   clients[clientIndex]->addr = server_sockaddr;
   printf("ADDR RET: %d\n", ret);
+  printf("UP: %p\n", clients[clientIndex]);
   return 0;
 }
 
@@ -140,7 +140,7 @@ uint32_t createEventChannel(int clientIndex) {
     return cErr;
   }
 
-  printf("CLIENT!\n");
+  printf("CLIENT %p!\n", c);
   c->EventChannel = rdma_create_event_channel();
   if (!c->EventChannel) {
     return makeError(0, ErrUnableToCreateEventChannel, 0, 0);
