@@ -212,7 +212,6 @@ void *handle_client(void *arg) {
     show_rdma_buffer_attr(&c->metaAttr);
     show_rdma_buffer_attr(&c->Server_B2);
     printf("data: %s\n", c->dataBuffer);
-    printf("data: %s\n", &c->dataBuffer[0]);
     // struct ibv_wc wc;
     // ret = process_work_completion_events(c->completionChannel, &wc);
     // if (ret != 1) {
