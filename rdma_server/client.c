@@ -111,7 +111,7 @@ uint32_t getClient(int clientIndex, client **client) {
   if (clientIndex > MaxClients) {
     return makeError(0, ErrClientIndexOutOfBounds, clientIndex, 0);
   }
-  printf("+C: %d\n", clientIndex);
+  printf("+CID: %d\n", clientIndex);
   client = &clients[clientIndex];
   if (!client) {
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
@@ -137,8 +137,10 @@ uint32_t createEventChannel(int clientIndex) {
   client *c;
   uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
+    printf("ERR\n");
     return cErr;
   }
+  printf("PR\n");
   printf("client: %d\n", c->port_space);
 
   c->EventChannel = rdma_create_event_channel();
