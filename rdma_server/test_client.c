@@ -62,27 +62,27 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
   if (ret == -1) {
     printf("ERROR SETTING NONBLOCK2: %d\n", ret);
   }
-  uint32_t retPoll = pollEventChannel(
-      cm_event_channel,
-      RDMA_CM_EVENT_ADDR_RESOLVED,
-      0,
-      3000,
-      &cm_event);
+  // uint32_t retPoll = pollEventChannel(
+  //     cm_event_channel,
+  //     RDMA_CM_EVENT_ADDR_RESOLVED,
+  //     0,
+  //     3000,
+  //     &cm_event);
 
-  // ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ADDR_RESOLVED,
-  //                             &cm_event);
-  // if (ret) {
-  //   debug("Failed to receive a valid event, ret = %d \n", ret);
-  //   return ret;
-  // }
-  //
-  // /* we ack the event */
-  // ret = rdma_ack_cm_event(cm_event);
-  // if (ret) {
-  //   debug("Failed to acknowledge the CM event, errno: %d\n", -errno);
-  //   return -errno;
-  // }
-  // debug("RDMA address is resolved \n");
+  ret = process_rdma_cm_event(cm_event_channel, RDMA_CM_EVENT_ADDR_RESOLVED,
+                              &cm_event);
+  if (ret) {
+    debug("Failed to receive a valid event, ret = %d \n", ret);
+    return ret;
+  }
+
+  /* we ack the event */
+  ret = rdma_ack_cm_event(cm_event);
+  if (ret) {
+    debug("Failed to acknowledge the CM event, errno: %d\n", -errno);
+    return -errno;
+  }
+  debug("RDMA address is resolved \n");
 
   /* Resolves an RDMA route to the destination address in order to
    * establish a connection */
