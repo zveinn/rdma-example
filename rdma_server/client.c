@@ -114,6 +114,7 @@ uint32_t getClient(int clientIndex, client *client) {
   printf("here %d\n", clientIndex);
   client = clients[clientIndex];
   if (!client) {
+    printf("here2 %d\n", clientIndex);
     return makeError(0, ErrUnableToGetClient, clientIndex, 0);
   }
   return 0;
