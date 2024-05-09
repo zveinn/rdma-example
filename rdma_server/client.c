@@ -102,7 +102,7 @@ uint32_t createClient(
   ret = get_addr(addr, (struct sockaddr *)&server_sockaddr);
   server_sockaddr.sin_port = htons(strtol(port, NULL, 0));
   clients[clientIndex]->addr = server_sockaddr;
-  printf("ADDR RET: %d", ret);
+  printf("ADDR RET: %d\n", ret);
   return 0;
 }
 
