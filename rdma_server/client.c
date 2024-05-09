@@ -64,11 +64,11 @@ typedef struct {
   struct rdma_buffer_attr LocalMetaAttributes;
   struct ibv_mr *LocalMetaMR;
   struct ibv_mr *LocalSourceMR;
-  struct ibv_sge LocalMetaSGE;
-  struct ibv_recv_wr LocalMetaReceiveWR;
-  struct ibv_recv_wr *BadLocalMetaReceiveWR;
-  struct ibv_send_wr LocalMetaSendWR;
-  struct ibv_send_wr *BadLocalMetaSendWR;
+  struct ibv_sge LocalSendSGE;
+  struct ibv_recv_wr LocalReceiveWR;
+  struct ibv_recv_wr *BadLocalReceiveWR;
+  struct ibv_send_wr LocalSendWR;
+  struct ibv_send_wr *BadLocalSendWR;
 
   // REMOTE META DATA
   struct rdma_buffer_attr RemoteMetaAttributes;
@@ -154,7 +154,6 @@ uint32_t createEventChannel(int clientIndex) {
     return cErr;
   }
 
-  printf("CLIENT %p!\n", c);
   c->EventChannel = rdma_create_event_channel();
   if (!c->EventChannel) {
     return makeError(0, ErrUnableToCreateEventChannel, 0, 0);
@@ -253,7 +252,6 @@ uint32_t IBVAllocProtectedDomain(int clientIndex) {
   }
 
   c->ProtectedDomain = ibv_alloc_pd(c->CMID->verbs);
-
   if (!c->ProtectedDomain) {
     return makeError(0, ErrUnableToAllocatePD, 0, 0);
   }
@@ -312,7 +310,7 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
     return cErr;
   }
 
-  // bzero(&qp_init_attr, sizeof qp_init_attr);
+  bzero(&c->QueuePairs, sizeof c->QueuePairs);
   c->QueuePairs.cap.max_recv_sge = c->MaxReceiveSGE;
   c->QueuePairs.cap.max_recv_wr = c->MaxReceiveWR;
   c->QueuePairs.cap.max_send_sge = c->MaxSendSGE;
@@ -342,7 +340,8 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   c->RemoteMetaMR = rdma_buffer_register(
       c->ProtectedDomain,
       &c->RemoteMetaAttributes,
-      sizeof(c->RemoteMetaAttributes), (IBV_ACCESS_LOCAL_WRITE));
+      sizeof(c->RemoteMetaAttributes),
+      (IBV_ACCESS_LOCAL_WRITE));
 
   if (!c->RemoteMetaMR) {
     return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
@@ -352,11 +351,13 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
   c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
 
+  bzero(&c->RemoteMetaReceiveWR, sizeof(c->RemoteMetaReceiveWR));
   c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
   c->RemoteMetaReceiveWR.num_sge = 1;
 
   int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
   if (ret) {
+    printf("FAIL REGISTER\n");
     return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
   }
 
@@ -386,12 +387,16 @@ uint32_t RDMAConnect(int clientIndex) {
 }
 
 uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
+  sleep(3);
   client *c = NULL;
   uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
     return cErr;
   }
 
+  printf("buffer: %s", buffer);
+  printf("buffer: %p", buffer);
+  printf("buffer: %p", &buffer);
   c->LocalSourceMR = rdma_buffer_register(
       c->ProtectedDomain,
       &buffer,
@@ -409,25 +414,30 @@ uint32_t RegisterLocalBufferAtRemoteServer(int clientIndex, char *buffer) {
   c->LocalMetaAttributes.stag.local_stag = (uint64_t)c->LocalSourceMR->lkey;
 
   printf("2\n");
-  c->LocalMetaMR = rdma_buffer_register(c->ProtectedDomain, &c->LocalMetaAttributes, sizeof(c->LocalMetaAttributes), (IBV_ACCESS_LOCAL_WRITE));
+  c->LocalMetaMR = rdma_buffer_register(
+      c->ProtectedDomain,
+      &c->LocalMetaAttributes,
+      sizeof(c->LocalMetaAttributes),
+      (IBV_ACCESS_LOCAL_WRITE));
+
   if (!c->LocalMetaMR) {
     return makeError(0, 0255, 0, 0);
   }
 
   printf("3\n");
-  c->LocalMetaSGE.addr = (uint64_t)c->LocalMetaMR->addr;
-  c->LocalMetaSGE.length = (uint64_t)c->LocalMetaMR->length;
-  c->LocalMetaSGE.lkey = (uint64_t)c->LocalMetaMR->lkey;
+  c->LocalSendSGE.addr = (uint64_t)c->LocalMetaMR->addr;
+  c->LocalSendSGE.length = (uint64_t)c->LocalMetaMR->length;
+  c->LocalSendSGE.lkey = (uint64_t)c->LocalMetaMR->lkey;
 
   printf("4\n");
-  bzero(&c->LocalMetaSendWR, sizeof(c->LocalMetaSendWR));
-  c->LocalMetaSendWR.sg_list = &c->LocalMetaSGE;
-  c->LocalMetaSendWR.num_sge = 1;
-  c->LocalMetaSendWR.opcode = IBV_WR_SEND;
-  c->LocalMetaSendWR.send_flags = IBV_SEND_SIGNALED;
+  bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
+  c->LocalSendWR.sg_list = &c->LocalSendSGE;
+  c->LocalSendWR.num_sge = 1;
+  c->LocalSendWR.opcode = IBV_WR_SEND;
+  c->LocalSendWR.send_flags = IBV_SEND_SIGNALED;
 
   printf("5\n");
-  int ret = ibv_post_send(c->CMID->qp, &c->LocalMetaSendWR, &c->BadLocalMetaSendWR);
+  int ret = ibv_post_send(c->CMID->qp, &c->LocalSendWR, &c->BadLocalSendWR);
   if (ret) {
     return makeError(ret, 0255, 0, 0);
   }
@@ -442,22 +452,22 @@ uint32_t WriteToRemoteBuffer(int clientIndex) {
     return cErr;
   }
   printf("1\n");
-  c->LocalMetaSGE.addr = (uint64_t)c->LocalSourceMR->addr;
-  c->LocalMetaSGE.length = (uint64_t)c->LocalSourceMR->length;
-  c->LocalMetaSGE.lkey = (uint64_t)c->LocalSourceMR->lkey;
+  c->LocalSendSGE.addr = (uint64_t)c->LocalSourceMR->addr;
+  c->LocalSendSGE.length = (uint64_t)c->LocalSourceMR->length;
+  c->LocalSendSGE.lkey = (uint64_t)c->LocalSourceMR->lkey;
 
   printf("2\n");
-  bzero(&c->LocalMetaSendWR, sizeof(c->LocalMetaSendWR));
-  c->LocalMetaSendWR.sg_list = &c->LocalMetaSGE;
-  c->LocalMetaSendWR.num_sge = 1;
-  c->LocalMetaSendWR.opcode = IBV_WR_RDMA_WRITE;
-  c->LocalMetaSendWR.send_flags = IBV_SEND_SIGNALED;
+  bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
+  c->LocalSendWR.sg_list = &c->LocalSendSGE;
+  c->LocalSendWR.num_sge = 1;
+  c->LocalSendWR.opcode = IBV_WR_RDMA_WRITE;
+  c->LocalSendWR.send_flags = IBV_SEND_SIGNALED;
 
-  c->LocalMetaSendWR.wr.rdma.rkey = c->RemoteMetaAttributes.stag.remote_stag;
-  c->LocalMetaSendWR.wr.rdma.remote_addr = c->RemoteMetaAttributes.address;
+  c->LocalSendWR.wr.rdma.rkey = c->RemoteMetaAttributes.stag.remote_stag;
+  c->LocalSendWR.wr.rdma.remote_addr = c->RemoteMetaAttributes.address;
 
   printf("3\n");
-  int ret = ibv_post_send(c->CMID->qp, &c->LocalMetaSendWR, &c->BadLocalMetaSendWR);
+  int ret = ibv_post_send(c->CMID->qp, &c->LocalSendWR, &c->BadLocalSendWR);
   if (ret) {
     return makeError(ret, 0255, 0, 0);
   }
@@ -490,6 +500,7 @@ int main() {
 
   // char *src = calloc(2000, 1);
   char *src = "01234567890123456789012345678901234567890123456789";
+  printf("BuFFER: %p", src);
 
   uint32_t ret;
   ret = createClient(
