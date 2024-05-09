@@ -92,7 +92,7 @@ uint32_t createClient(
   clients[clientIndex]->route_resolve_timeout = route_resolve_timeout;
   clients[clientIndex]->port_space = port_space;
 
-  bzero(&c->addr, sizeof c->addr);
+  // clients[clientIndex].addr = malloc(sizeof(struct sockaddr_in));
   c->addr.sin_family = AF_INET;
   c->addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
   int ret;
