@@ -83,14 +83,27 @@ uint32_t createClient(
     char *port,
     int addr_resolve_timeout,
     int route_resolve_timeout,
+    int completion_queue_capacity,
+    int MaxReceiveWR,
+    int MaxSendWR,
+    int MaxReceiveSGE,
+    int MaxSendSGE,
+    enum ibv_qp_type queue_pair_type,
     enum rdma_port_space port_space) {
 
   clients[clientIndex] = malloc(sizeof(client));
   clients[clientIndex]->port_space = port_space;
+  clients[clientIndex]->QueuePairType = queue_pair_type;
+  clients[clientIndex]->CompletionQueueCapacity = completion_queue_capacity;
+
   // clients[clientIndex]->addr = addr;
   clients[clientIndex]->addr_resolve_timeout = addr_resolve_timeout;
   clients[clientIndex]->route_resolve_timeout = route_resolve_timeout;
   clients[clientIndex]->port_space = port_space;
+  clients[clientIndex]->MaxSendWR = MaxSendWR;
+  clients[clientIndex]->MaxSendSGE = MaxSendSGE;
+  clients[clientIndex]->MaxReceiveWR = MaxReceiveWR;
+  clients[clientIndex]->MaxReceiveSGE = MaxReceiveSGE;
 
   // clients[clientIndex].addr = malloc(sizeof(struct sockaddr_in));
   struct sockaddr_in server_sockaddr;
@@ -279,22 +292,11 @@ uint32_t IBVCreateCompletionQueue(int clientIndex) {
     return makeError(0, ErrUnableToCreateCompletionQueue, 0, 0);
   }
 
-  return 0;
-}
-
-uint32_t IBVRequestCompletionNotifications(int clientIndex) {
-  client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, &c);
-  if (cErr) {
-    return cErr;
-  }
-
   int8_t ret = ibv_req_notify_cq(
       c->CompletionQueue,
       0);
-
   if (ret) {
-    return makeError(0, ErrUnableToRegisterCQNotifications, 0, 0);
+    return makeError(ret, ErrUnableToRegisterCQNotifications, 0, 0);
   }
 
   return 0;
@@ -377,17 +379,6 @@ uint32_t RDMAConnect(int clientIndex) {
     return makeError(ret, ErrUnableToResolveAddress, 0, 0);
   }
 
-  struct rdma_cm_event *cm_event = NULL;
-  uint32_t retPoll = pollEventChannel(
-      c->EventChannel,
-      RDMA_CM_EVENT_ESTABLISHED,
-      0,
-      3000,
-      &cm_event);
-  if (ret) {
-    return ret;
-  }
-
   return 0;
 }
 //// TODO ... EXCHANGE META INFO
@@ -416,8 +407,10 @@ int main() {
       1,
       "15.15.15.2",
       "11111",
-      5000,
-      5000,
+      5000, 5000,
+      10000,
+      10, 10, 10, 10,
+      IBV_QPT_RC,
       RDMA_PS_TCP);
 
   printf("1: 0x%X\n", ret);
@@ -441,20 +434,34 @@ int main() {
       3000,
       &cm_event);
 
-  ret = RDMAResolveRoute(1);
   printf("7: 0x%X\n", ret);
+  ret = RDMAResolveRoute(1);
+  printf("8: 0x%X\n", ret);
   ret = pollEventChannel(
       c->EventChannel,
       RDMA_CM_EVENT_ROUTE_RESOLVED,
       0,
       3000,
       &cm_event);
-  printf("8: 0x%X\n", ret);
+
   printf("9: 0x%X\n", ret);
+  ret = IBVAllocProtectedDomain(1);
   printf("10: 0x%X\n", ret);
+  ret = IBVCreateCompletionChannel(1);
   printf("11: 0x%X\n", ret);
+  ret = RDMACreateQueuePairs(1);
   printf("12: 0x%X\n", ret);
+  ret = RegisterBufferForRemoteMetaAttributes(1);
   printf("13: 0x%X\n", ret);
+  ret = RDMAConnect(1);
+  ret = pollEventChannel(
+      c->EventChannel,
+      RDMA_CM_EVENT_ESTABLISHED,
+      0,
+      3000,
+      &cm_event);
+
+  printf("14: 0x%X\n", ret);
 
   return 1;
 }
