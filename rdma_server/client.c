@@ -358,45 +358,10 @@ uint32_t IBVPostReceiveSingle(struct ibv_qp *qp, struct ibv_mr *bufferMR) {
   }
   return 0;
 }
-// This is the buffer which the remote server will
-// write metra attributes to.
-uint32_t
-RegisterBufferForRemoteMetaAttributes2(int clientIndex) {
-  client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, &c);
-  if (cErr) {
-    return cErr;
-  }
-
-  c->RemoteMetaMR2 = rdma_buffer_register(
-      c->ProtectedDomain,
-      &c->RemoteMetaAttributes2,
-      sizeof(c->RemoteMetaAttributes2),
-      (IBV_ACCESS_LOCAL_WRITE));
-
-  if (!c->RemoteMetaMR2) {
-    return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
-  }
-
-  c->RemoteMetaSGE2.addr = (uint64_t)c->RemoteMetaMR2->addr;
-  c->RemoteMetaSGE2.length = c->RemoteMetaMR2->length;
-  c->RemoteMetaSGE2.lkey = c->RemoteMetaMR2->lkey;
-
-  c->RemoteMetaReceiveWR2.sg_list = &c->RemoteMetaSGE2;
-  c->RemoteMetaReceiveWR2.num_sge = 1;
-
-  int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR2, &c->BadRemoteMetaReceiveWR2);
-  if (ret) {
-    printf("FAIL REGISTER\n");
-    return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
-  }
-
-  return 0;
-}
 
 // This is the buffer which the remote server will
 // write metra attributes to.
-uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
+uint32_t RegisterBuffersForRemoteMetaAttributes(int clientIndex) {
   client *c = NULL;
   uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
@@ -426,19 +391,6 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
   }
 
   IBVPostReceiveSingle(c->CMID->qp, bufferMR2);
-
-  //     c->RemoteMetaSGE.addr = (uint64_t)c->RemoteMetaMR->addr;
-  // c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
-  // c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
-  //
-  // c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
-  // c->RemoteMetaReceiveWR.num_sge = 1;
-  //
-  // int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
-  // if (ret) {
-  //   printf("FAIL REGISTER\n");
-  //   return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
-  // }
 
   return 0;
 }
@@ -679,7 +631,7 @@ int main() {
   printf("12: 0x%X\n", ret);
   ret = RDMACreateQueuePairs(1);
   printf("13: 0x%X\n", ret);
-  ret = RegisterBufferForRemoteMetaAttributes(1);
+  ret = RegisterBuffersForRemoteMetaAttributes(1);
   printf("14: 0x%X\n", ret);
   show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   ret = RDMAConnect(1);
