@@ -258,6 +258,7 @@ void *handle_client(void *arg) {
     debug("Failed to send server metadata to the client, ret = %d \n", ret);
     return NULL;
   }
+
   printf("WAITING FOR CLIENT.. 2222.\n");
   ret = process_work_completion_events(c->completionChannel, &wc);
   if (ret != 1) {
@@ -270,6 +271,7 @@ void *handle_client(void *arg) {
     printf("CLIENT %p\n", &c);
     show_rdma_buffer_attr(&c->metaAttr);
     show_rdma_buffer_attr(&c->Server_B1);
+    show_rdma_buffer_attr(&c->Server_B2);
 
     // printf("%d\n ", (int)c->dataBuffer[0]);
     // printf("%d\n ", (int)c->dataBuffer[1]);
