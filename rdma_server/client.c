@@ -548,8 +548,8 @@ uint32_t WriteToRemoteBuffer2(int clientIndex) {
   c->LocalSendWR.opcode = IBV_WR_RDMA_WRITE;
   c->LocalSendWR.send_flags = IBV_SEND_SIGNALED;
 
-  c->LocalSendWR.wr.rdma.rkey = c->RemoteMetaAttributes.stag.remote_stag;
-  c->LocalSendWR.wr.rdma.remote_addr = c->RemoteMetaAttributes.address;
+  c->LocalSendWR.wr.rdma.rkey = c->RemoteMetaAttributes2.stag.remote_stag;
+  c->LocalSendWR.wr.rdma.remote_addr = c->RemoteMetaAttributes2.address;
 
   printf("3\n");
   int ret = ibv_post_send(c->CMID->qp, &c->LocalSendWR, &c->BadLocalSendWR);

@@ -276,6 +276,7 @@ void *handle_client(void *arg) {
     // printf("%d\n ", (int)c->dataBuffer[0]);
     // printf("%d\n ", (int)c->dataBuffer[1]);
     printf("data: %s\n", c->dataBuffer);
+    printf("data2: %s\n", c->dataBuffer2);
     // struct ibv_wc wc;
     // ret = process_work_completion_events(c->completionChannel, &wc);
     // if (ret != 1) {
