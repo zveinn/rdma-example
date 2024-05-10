@@ -335,9 +335,48 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
 
   return 0;
 }
+
+uint32_t IBVPostReceiveSingle(int clientIndex, struct ibv_mr *bufferMR) {
+  client *c = NULL;
+  uint32_t cErr = getClient(clientIndex, &c);
+  if (cErr) {
+    return cErr;
+  }
+
+  bufferMR = rdma_buffer_register(
+      c->ProtectedDomain,
+      &c->RemoteMetaAttributes2,
+      sizeof(c->RemoteMetaAttributes2),
+      (IBV_ACCESS_LOCAL_WRITE));
+
+  if (!c->RemoteMetaMR2) {
+    return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
+  }
+
+  struct ibv_sge SGE;
+  struct ibv_recv_wr WRK, *BADWRK;
+
+  SGE.addr = (uint64_t)bufferMR->addr;
+  SGE.length = bufferMR->length;
+  SGE.lkey = bufferMR->lkey;
+
+  WRK.sg_list = &SGE;
+  WRK.num_sge = 1;
+
+  int8_t ret = ibv_post_recv(
+      c->CMID->qp,
+      &WRK,
+      &BADWRK);
+  if (ret) {
+    printf("FAIL NEW SGE\n");
+    return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
+  }
+  return 0;
+}
 // This is the buffer which the remote server will
 // write metra attributes to.
-uint32_t RegisterBufferForRemoteMetaAttributes2(int clientIndex) {
+uint32_t
+RegisterBufferForRemoteMetaAttributes2(int clientIndex) {
   client *c = NULL;
   uint32_t cErr = getClient(clientIndex, &c);
   if (cErr) {
@@ -642,7 +681,8 @@ int main() {
   ret = RDMACreateQueuePairs(1);
   printf("13: 0x%X\n", ret);
   ret = RegisterBufferForRemoteMetaAttributes(1);
-  ret = RegisterBufferForRemoteMetaAttributes2(1);
+  // ret = RegisterBufferForRemoteMetaAttributes2(1);
+  ret = IBVPostReceiveSingle(1, NULL);
   printf("14: 0x%X\n", ret);
   show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   ret = RDMAConnect(1);

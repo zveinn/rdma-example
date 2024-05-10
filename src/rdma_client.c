@@ -145,10 +145,10 @@ static int client_prepare_connection(struct sockaddr_in *s_addr) {
    * from the device. We just use a small number as defined in rdma_common.h */
   bzero(&qp_init_attr, sizeof qp_init_attr);
   qp_init_attr.cap.max_recv_sge = MAX_SGE; /* Maximum SGE per receive posting */
-  qp_init_attr.cap.max_recv_wr = MAX_WR; /* Maximum receive posting capacity */
+  qp_init_attr.cap.max_recv_wr = MAX_WR;   /* Maximum receive posting capacity */
   qp_init_attr.cap.max_send_sge = MAX_SGE; /* Maximum SGE per send posting */
   qp_init_attr.cap.max_send_wr = MAX_WR;   /* Maximum send posting capacity */
-  qp_init_attr.qp_type = IBV_QPT_RC; /* QP type, RC = Reliable connection */
+  qp_init_attr.qp_type = IBV_QPT_RC;       /* QP type, RC = Reliable connection */
   /* We use same completion queue, but one can use different queues */
   qp_init_attr.recv_cq =
       client_cq; /* Where should I notify for receive completion operations */
