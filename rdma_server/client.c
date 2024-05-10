@@ -74,10 +74,10 @@ typedef struct {
 
   // REMOTE META DATA
   struct rdma_buffer_attr RemoteMetaAttributes;
-  struct ibv_mr *RemoteMetaMR;
-  struct ibv_sge RemoteMetaSGE;
-  struct ibv_recv_wr RemoteMetaReceiveWR;
-  struct ibv_recv_wr *BadRemoteMetaReceiveWR;
+  // struct ibv_mr *RemoteMetaMR;
+  // struct ibv_sge RemoteMetaSGE;
+  // struct ibv_recv_wr RemoteMetaReceiveWR;
+  // struct ibv_recv_wr *BadRemoteMetaReceiveWR;
 
   struct rdma_buffer_attr RemoteMetaAttributes2;
   struct ibv_mr *RemoteMetaMR2;
@@ -336,22 +336,7 @@ uint32_t RDMACreateQueuePairs(int clientIndex) {
   return 0;
 }
 
-uint32_t IBVPostReceiveSingle(int clientIndex, struct ibv_mr *bufferMR) {
-  client *c = NULL;
-  uint32_t cErr = getClient(clientIndex, &c);
-  if (cErr) {
-    return cErr;
-  }
-
-  bufferMR = rdma_buffer_register(
-      c->ProtectedDomain,
-      &c->RemoteMetaAttributes2,
-      sizeof(c->RemoteMetaAttributes2),
-      (IBV_ACCESS_LOCAL_WRITE));
-
-  if (!bufferMR) {
-    return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
-  }
+uint32_t IBVPostReceiveSingle(struct ibv_qp *qp, struct ibv_mr *bufferMR) {
 
   struct ibv_sge SGE;
   struct ibv_recv_wr WRK, *BADWRK;
@@ -364,7 +349,7 @@ uint32_t IBVPostReceiveSingle(int clientIndex, struct ibv_mr *bufferMR) {
   WRK.num_sge = 1;
 
   int8_t ret = ibv_post_recv(
-      c->CMID->qp,
+      qp,
       &WRK,
       &BADWRK);
   if (ret) {
@@ -418,28 +403,42 @@ uint32_t RegisterBufferForRemoteMetaAttributes(int clientIndex) {
     return cErr;
   }
 
-  c->RemoteMetaMR = rdma_buffer_register(
+  struct ibv_mr *bufferMR = rdma_buffer_register(
       c->ProtectedDomain,
       &c->RemoteMetaAttributes,
       sizeof(c->RemoteMetaAttributes),
       (IBV_ACCESS_LOCAL_WRITE));
 
-  if (!c->RemoteMetaMR) {
+  if (!bufferMR) {
     return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
   }
 
-  c->RemoteMetaSGE.addr = (uint64_t)c->RemoteMetaMR->addr;
-  c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
-  c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
+  IBVPostReceiveSingle(c->CMID->qp, bufferMR);
 
-  c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
-  c->RemoteMetaReceiveWR.num_sge = 1;
+  struct ibv_mr *bufferMR2 = rdma_buffer_register(
+      c->ProtectedDomain,
+      &c->RemoteMetaAttributes2,
+      sizeof(c->RemoteMetaAttributes2),
+      (IBV_ACCESS_LOCAL_WRITE));
 
-  int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
-  if (ret) {
-    printf("FAIL REGISTER\n");
-    return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
+  if (!bufferMR) {
+    return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
   }
+
+  IBVPostReceiveSingle(c->CMID->qp, bufferMR2);
+
+  //     c->RemoteMetaSGE.addr = (uint64_t)c->RemoteMetaMR->addr;
+  // c->RemoteMetaSGE.length = c->RemoteMetaMR->length;
+  // c->RemoteMetaSGE.lkey = c->RemoteMetaMR->lkey;
+  //
+  // c->RemoteMetaReceiveWR.sg_list = &c->RemoteMetaSGE;
+  // c->RemoteMetaReceiveWR.num_sge = 1;
+  //
+  // int8_t ret = ibv_post_recv(c->CMID->qp, &c->RemoteMetaReceiveWR, &c->BadRemoteMetaReceiveWR);
+  // if (ret) {
+  //   printf("FAIL REGISTER\n");
+  //   return makeError(0, ErrUnableToPostRemoteMetaMRToReceiveQueue, 0, 0);
+  // }
 
   return 0;
 }
@@ -681,8 +680,6 @@ int main() {
   ret = RDMACreateQueuePairs(1);
   printf("13: 0x%X\n", ret);
   ret = RegisterBufferForRemoteMetaAttributes(1);
-  // ret = RegisterBufferForRemoteMetaAttributes2(1);
-  ret = IBVPostReceiveSingle(1, NULL);
   printf("14: 0x%X\n", ret);
   show_rdma_buffer_attr(&c->RemoteMetaAttributes);
   ret = RDMAConnect(1);
