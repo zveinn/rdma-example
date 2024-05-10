@@ -349,7 +349,7 @@ uint32_t IBVPostReceiveSingle(int clientIndex, struct ibv_mr *bufferMR) {
       sizeof(c->RemoteMetaAttributes2),
       (IBV_ACCESS_LOCAL_WRITE));
 
-  if (!c->RemoteMetaMR2) {
+  if (!bufferMR) {
     return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
   }
 

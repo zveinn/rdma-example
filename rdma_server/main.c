@@ -1,4 +1,5 @@
 #include "rdma_common.h"
+#include <stdio.h>
 
 void usage() {
   printf("Usage:\n");
@@ -82,7 +83,6 @@ static int setup_client_resources(connection *c) {
   if (!c->completionChannel) {
     return ErrUnableToCreateCompletionChannel;
   }
-
   c->CQ = ibv_create_cq(c->cm_event_id->verbs, CQ_CAPACITY, NULL,
                         c->completionChannel, 0);
   if (!c->CQ) {
