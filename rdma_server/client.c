@@ -79,6 +79,12 @@ typedef struct {
   struct ibv_recv_wr RemoteMetaReceiveWR;
   struct ibv_recv_wr *BadRemoteMetaReceiveWR;
 
+  struct rdma_buffer_attr RemoteMetaAttributes2;
+  struct ibv_mr *RemoteMetaMR2;
+  struct ibv_sge RemoteMetaSGE2;
+  struct ibv_recv_wr RemoteMetaReceiveWR2;
+  struct ibv_recv_wr *BadRemoteMetaReceiveWR2;
+
 } client;
 client *clients[1000];
 
