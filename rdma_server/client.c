@@ -65,6 +65,7 @@ typedef struct {
   struct rdma_buffer_attr LocalMetaAttributes;
   struct ibv_mr *LocalMetaMR;
   struct ibv_mr *LocalSourceMR;
+  struct ibv_mr *LocalSourceMR2;
   struct ibv_sge LocalSendSGE;
   struct ibv_recv_wr LocalReceiveWR;
   struct ibv_recv_wr *BadLocalReceiveWR;
@@ -475,6 +476,51 @@ uint32_t WriteToRemoteBuffer(int clientIndex) {
 
   return 0;
 }
+uint32_t WriteToRemoteBuffer2(int clientIndex) {
+  client *c = NULL;
+  uint32_t cErr = getClient(clientIndex, &c);
+  if (cErr) {
+    return cErr;
+  }
+
+  printf("1\n");
+  static char *src = NULL;
+  src = calloc(5, 1);
+  strncpy(src, "hello", 5);
+  printf("BuFFER: %p\n", src);
+  c->LocalSourceMR2 = rdma_buffer_register(
+      c->ProtectedDomain,
+      src,
+      strlen(src),
+      (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+       IBV_ACCESS_REMOTE_WRITE));
+
+  if (!c->LocalSourceMR2) {
+    return makeError(0, ErrUnableToCreateMetaMR, 0, 0);
+  }
+  c->LocalSendSGE.addr = (uint64_t)c->LocalSourceMR2->addr;
+  c->LocalSendSGE.length = (uint64_t)c->LocalSourceMR2->length;
+  c->LocalSendSGE.lkey = (uint64_t)c->LocalSourceMR2->lkey;
+
+  printf("2\n");
+  // bzero(&c->LocalSendWR, sizeof(c->LocalSendWR));
+  c->LocalSendWR.sg_list = &c->LocalSendSGE;
+  c->LocalSendWR.num_sge = 1;
+  c->LocalSendWR.opcode = IBV_WR_RDMA_WRITE;
+  c->LocalSendWR.send_flags = IBV_SEND_SIGNALED;
+
+  c->LocalSendWR.wr.rdma.rkey = c->RemoteMetaAttributes.stag.remote_stag;
+  c->LocalSendWR.wr.rdma.remote_addr = c->RemoteMetaAttributes.address;
+
+  printf("3\n");
+  int ret = ibv_post_send(c->CMID->qp, &c->LocalSendWR, &c->BadLocalSendWR);
+  if (ret) {
+    return makeError(ret, 0255, 0, 0);
+  }
+  printf("4\n");
+
+  return 0;
+}
 
 //// TODO ... EXCHANGE META INFO
 //// TOTO .. CLIENT WRITE
@@ -596,6 +642,9 @@ int main() {
   printf("18: 0x%X\n", ret);
   ret = WriteToRemoteBuffer(1);
   printf("19: 0x%X\n", ret);
+  sleep(5);
+  ret = WriteToRemoteBuffer(1);
+  printf("20: 0x%X\n", ret);
 
   while (1) {
     show_rdma_buffer_attr(&c->RemoteMetaAttributes);
