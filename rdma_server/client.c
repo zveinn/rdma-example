@@ -688,6 +688,7 @@ int main() {
 
   while (1) {
     show_rdma_buffer_attr(&c->RemoteMetaAttributes);
+    show_rdma_buffer_attr(&c->RemoteMetaAttributes2);
     show_rdma_buffer_attr(&c->LocalMetaAttributes);
     printf("MADE IT!\n");
     sleep(1);

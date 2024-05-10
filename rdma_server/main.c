@@ -37,8 +37,16 @@ typedef struct {
   struct ibv_send_wr *Server_BAD_RCV_WR;
   // struct ibv_recv_wr RCV_WR;
 
-  struct rdma_buffer_attr Server_B2;
+  struct rdma_buffer_attr Server_B1;
   char *dataBuffer;
+
+  struct rdma_buffer_attr Server_B2;
+  char *dataBuffer2;
+  struct ibv_mr *serverMR2;
+  struct ibv_mr *serverMetaMR2;
+  struct ibv_sge Server_SGE2;
+  struct ibv_send_wr Server_RCV_WR2;
+  struct ibv_send_wr *Server_BAD_RCV_WR2;
 
   int index;
 } connection;
@@ -144,20 +152,20 @@ static int send_server_metadata_to_client(connection *c) {
     return -ENOMEM;
   }
 
-  c->Server_B2.address = (uint64_t)c->serverMR->addr;
-  c->Server_B2.length = (uint32_t)c->serverMR->length;
-  c->Server_B2.stag.local_stag = (uint32_t)c->serverMR->lkey;
+  c->Server_B1.address = (uint64_t)c->serverMR->addr;
+  c->Server_B1.length = (uint32_t)c->serverMR->length;
+  c->Server_B1.stag.local_stag = (uint32_t)c->serverMR->lkey;
 
   c->serverMetaMR = rdma_buffer_register(
-      c->PD, &c->Server_B2, sizeof(c->Server_B2), IBV_ACCESS_LOCAL_WRITE);
+      c->PD, &c->Server_B1, sizeof(c->Server_B1), IBV_ACCESS_LOCAL_WRITE);
 
   if (!c->serverMetaMR) {
     debug("Server failed to create to hold server metadata \n");
     return -ENOMEM;
   }
 
-  c->Server_SGE.addr = (uint64_t)&c->Server_B2;
-  c->Server_SGE.length = sizeof(c->Server_B2);
+  c->Server_SGE.addr = (uint64_t)&c->Server_B1;
+  c->Server_SGE.length = sizeof(c->Server_B1);
   c->Server_SGE.lkey = c->serverMetaMR->lkey;
 
   bzero(&c->Server_RCV_WR, sizeof(c->Server_RCV_WR));
@@ -169,6 +177,54 @@ static int send_server_metadata_to_client(connection *c) {
   // GENERAATES A WORK COMPLETION EVENT
   ret = ibv_post_send(c->cm_event_id->qp, &c->Server_RCV_WR,
                       &c->Server_BAD_RCV_WR);
+  if (ret) {
+    debug("Posting of server metdata failed, errno: %d \n", -errno);
+    return -errno;
+  }
+
+  debug("Local buffer metadata has been sent to the client \n");
+  return 0;
+}
+static int send_server_metadata_to_client2(connection *c) {
+  struct ibv_wc wc;
+  int ret = -1;
+
+  c->dataBuffer2 = calloc(50, 1);
+  c->serverMR2 =
+      rdma_buffer_register(c->PD, c->dataBuffer2, 50,
+                           (IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+                            IBV_ACCESS_REMOTE_WRITE));
+
+  if (!c->serverMR2) {
+    debug("Server failed to create a buffer \n");
+    return -ENOMEM;
+  }
+
+  c->Server_B2.address = (uint64_t)c->serverMR2->addr;
+  c->Server_B2.length = (uint32_t)c->serverMR2->length;
+  c->Server_B2.stag.local_stag = (uint32_t)c->serverMR2->lkey;
+
+  c->serverMetaMR2 = rdma_buffer_register(
+      c->PD, &c->Server_B2, sizeof(c->Server_B2), IBV_ACCESS_LOCAL_WRITE);
+
+  if (!c->serverMetaMR2) {
+    debug("Server failed to create to hold server metadata \n");
+    return -ENOMEM;
+  }
+
+  c->Server_SGE2.addr = (uint64_t)&c->Server_B2;
+  c->Server_SGE2.length = sizeof(c->Server_B2);
+  c->Server_SGE2.lkey = c->serverMetaMR2->lkey;
+
+  // bzero(&c->Server_RCV_WR, sizeof(c->Server_RCV_WR));
+  c->Server_RCV_WR2.sg_list = &c->Server_SGE2;
+  c->Server_RCV_WR2.num_sge = 1;
+  c->Server_RCV_WR2.opcode = IBV_WR_SEND;
+  c->Server_RCV_WR2.send_flags = IBV_SEND_SIGNALED;
+
+  // GENERAATES A WORK COMPLETION EVENT
+  ret = ibv_post_send(c->cm_event_id->qp, &c->Server_RCV_WR2,
+                      &c->Server_BAD_RCV_WR2);
   if (ret) {
     debug("Posting of server metdata failed, errno: %d \n", -errno);
     return -errno;
@@ -197,6 +253,11 @@ void *handle_client(void *arg) {
     debug("Failed to send server metadata to the client, ret = %d \n", ret);
     return NULL;
   }
+  ret = send_server_metadata_to_client2(c);
+  if (ret) {
+    debug("Failed to send server metadata to the client, ret = %d \n", ret);
+    return NULL;
+  }
   printf("WAITING FOR CLIENT.. 2222.\n");
   ret = process_work_completion_events(c->completionChannel, &wc);
   if (ret != 1) {
@@ -208,7 +269,7 @@ void *handle_client(void *arg) {
     printf("?? : %u bytes \n", c->metaAttr.length);
     printf("CLIENT %p\n", &c);
     show_rdma_buffer_attr(&c->metaAttr);
-    show_rdma_buffer_attr(&c->Server_B2);
+    show_rdma_buffer_attr(&c->Server_B1);
 
     // printf("%d\n ", (int)c->dataBuffer[0]);
     // printf("%d\n ", (int)c->dataBuffer[1]);
