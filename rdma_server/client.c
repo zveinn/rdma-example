@@ -485,8 +485,8 @@ uint32_t WriteToRemoteBuffer2(int clientIndex) {
 
   printf("1\n");
   static char *src = NULL;
-  src = calloc(5, 1);
-  strncpy(src, "hello", 5);
+  src = calloc(7, 1);
+  strncpy(src, "hello2!", 7);
   printf("BuFFER: %p\n", src);
   c->LocalSourceMR2 = rdma_buffer_register(
       c->ProtectedDomain,
